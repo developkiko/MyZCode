@@ -82,6 +82,22 @@ const formatterMessages = {
     moreToolCalls: "{count} more tool calls",
     moreFiles: "{count} more files",
   },
+  "ru-RU": {
+    toolCalls: "Вызовы инструментов:",
+    completed: "Готово",
+    failed: "Ошибка",
+    denied: "Отказано",
+    inProgress: "⏳ Выполняется",
+    pending: "Ожидает",
+    permissionRequired: "Требуется разрешение:",
+    editWriting: "Запись",
+    editUpdating: "Обновление",
+    editDeleting: "Удаление",
+    editEditing: "Правка",
+    changeSummary: "Сводка изменений",
+    moreToolCalls: "Ещё вызовов инструментов: {count}",
+    moreFiles: "Ещё файлов: {count}",
+  },
 } as const;
 
 function t(locale: Locale | undefined, key: keyof (typeof formatterMessages)["zh-CN"]): string {

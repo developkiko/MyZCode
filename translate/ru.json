@@ -7150,5 +7150,8 @@
   "globalNotice.highspeed.lessWaiting": "На {percent}% меньше ожидания",
   "globalNotice.highspeed.copySummary": "Я воспользовался картой ZCode Highspeed и сэкономил {duration} с. Попробуйте и вы. Скачайте ZCode https://zcode.z.ai",
   "globalNotice.highspeed.imageSummary": "{tokens} токенов · сэкономлено {duration} с",
-  "globalNotice.highspeed.close": "Закрыть карточку публикации Highspeed"
+  "globalNotice.highspeed.close": "Закрыть карточку публикации Highspeed",
+  "settings.locale.ru-RU": "Русский",
+  "sidebar.settings.locale.ru-RU": "Русский",
+  "settings.plugins.store.browseAll": "Все плагины"
 }

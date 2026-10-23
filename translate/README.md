@@ -35,22 +35,55 @@ Electron при запуске ищет код приложения в тако�
 | `missing.json` | Список новых ключей 3.16.3 (архив задачи) |
 | `gen-ru-catalog.mjs` | Генератор `ru-RU.ts` для ИСХОДНИКОВ: берёт ключи из en-US.ts + переводы из ru.json |
 
-## Путь 2 — нативный русский в исходниках (MyZCode)
+## Путь 2 — нативный русский в исходниках (MyZCode) — ВЫПОЛНЕНО 2026-10-24
 
-Точки правки в исходниках (`origin/ZCode-main`):
+Точки правки в исходниках (`origin/ZCode-main`) — все применены:
 
 1. `packages/shared/src/protocol.ts` — `export type Locale = "zh-CN" | "en-US" | "ru-RU";`
 2. `packages/shared/src/validationAppSettings.ts` — `localeSchema`/`localePreferenceSchema` += `"ru-RU"`
-3. `packages/ui/src/i18n/locales/ru-RU.ts` — **новый файл** (генерируется `gen-ru-catalog.mjs`)
-4. `packages/ui/src/i18n/IntlProvider.tsx` — импорт, `MESSAGES["ru-RU"]`, `isLocale()`
-5. `packages/ui/src/i18n/LocaleSwitcher.tsx` — `LOCALE_CYCLE`, `LOCALE_LABELS["ru-RU"]="Ру"`
-6. `packages/ui/src/settingsPageHelpers.tsx` (~строка 399–405) — пункт пикера «Русский»
-7. `packages/shared/src/desktopMenu.ts` — запись `ru-RU` в `desktopMenuMessages`
+3. `packages/ui/src/i18n/locales/ru-RU.ts` — **создан** генератором (6983 ключа, покрытие 100%)
+4. `packages/ui/src/i18n/IntlProvider.tsx` — импорт, `MESSAGES["ru-RU"]`, `isLocale()`, системная локаль `ru*` → ru-RU
+5. `packages/ui/src/i18n/LocaleSwitcher.tsx` — `LOCALE_CYCLE` += ru-RU, метка «Ру»
+6. `packages/ui/src/settingsPageHelpers.tsx` — пункт пикера «Русский» (+ `WorkspaceSidebarFooter.tsx`, id `settings.locale.ru-RU` / `sidebar.settings.locale.ru-RU` добавлены в en-US.ts и zh-CN.ts)
+7. `packages/shared/src/desktopMenu.ts` — полный каталог `ru-RU` (48 строк: меню, трей, док)
 8. `packages/desktop/src/main/about.ts` — каталог «О программе» для ru-RU
-9. `packages/desktop/src/main/autoUpdater.ts` — `for (const locale of ["zh-CN","en-US","ru-RU"])`
+9. `packages/desktop/src/main/autoUpdater.ts` — цикл локалей += ru-RU; фолбэк release notes: en → zh
+10. **Дополнительно, чтобы русский не падал в китайский** (ветки `locale === "en-US" ? EN : 中文`):
+    - `packages/ui/src/ErrorBoundary.tsx` — роутинг zh/ru/en
+    - `packages/ui/src/lib/conversationShareError.ts` — инвертированы тернарники
+    - `packages/ui/src/updateReleaseNotes.ts` — фолбэк zh-CN → en-US
+    - `packages/desktop/src/main/desktopApplicationMenu.ts` + `pluginSandbox/host.ts` + `renderer/src/desktopPlatform.ts` + `renderer/src/main.tsx` — распознавание системной локали / флагов
+    - `packages/ui/src/SettingsPage.tsx` — guard пикера += "ru-RU"
+    - `packages/services/src/marketing-touch/*`, `packages/ui/src/components/marketing-touch/*` — типы расширены до Locale, на сервер маппятся zh/en
+    - `packages/ui/src/feedback/feedbackSubmitSubmission.ts` — locale → схема тикета (zh/en)
+    - `packages/ui/src/rewards/RewardsWebview.tsx` + `packages/shared/src/rewardsEmbedded.ts` — ru → en для страницы rewards
+    - `packages/shared/src/remoteAppConfig.ts` — community-URL: ru → en
 
-Все прочие места — конструкции вида `locale === "zh-CN" ? X : английский` — для русского
-безопасно падают в английскую ветку (фаза 2, полировка).
+## Telegram-бот — русский язык (ВЫПОЛНЕНО 2026-10-24)
+
+- `packages/services/src/bots/messages.ts` — тип `BotMessageLocale` += ru-RU,
+  полный каталог `ru-RU` (113 сообщений, набор ключей идентичен zh/en — проверено
+  скриптом), `normalizeBotMessageLocale()` пропускает ru-RU
+- `packages/services/src/bots/replyFormatter.ts` — каталог ru-RU (15 строк)
+- `packages/services/src/bots/botsService.ts` — все ~30 ветвлений локали получили
+  русские ветки: права (Разрешить/Отклонить/всегда...), метки `[Удалённая]`,
+  гранулярность ответов (Обычные/Полные/Краткие/Живая карточка, алиасы),
+  режимы (Обычный/План), карточка очереди, /history, темы, привязка и пр.
+- Локаль бота берётся из настроек приложения (`settings.locale`): выбранный
+  в UI ru-RU автоматически делает бота русскоязычным.
+
+## DevTools по F12 (ВЫПОЛНЕНО)
+
+`packages/desktop/src/main/desktopApplicationMenu.ts` — пункту меню
+«Переключить инструменты разработчика» задан `accelerator: "F12"`. Меню
+регистрируется глобально через `Menu.setApplicationMenu`, так что F12 работает
+даже при скрытой строке меню на Windows.
+
+## Непереведённое (осознанно, фаза 2)
+
+- coding-plan webview и rewards-страница — сервер отдаёт контент только на zh/en
+- описания встроенных скиллов (`builtinSkillI18n.ts`) — фолбэк на английский
+- веб-версия (`packages/web`), флоу-панели, marketing touch серверный контент
 
 Сборка: `pnpm install` в корне воркспейса → `pnpm --filter @zcode/desktop build`
 (сборщик — electron-builder, Electron 41.0.3; смотрите `packages/desktop/package.json`).

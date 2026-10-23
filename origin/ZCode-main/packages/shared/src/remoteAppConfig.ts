@@ -74,7 +74,9 @@ export function getCommunityUrlFromConfigs(
 
   // 社群渠道具有语言边界。只允许远端覆盖同语言的内置入口，
   // 对应语言缺失时保持隐藏，避免中文和英文用户被导向错误渠道。
-  return remoteUrls[locale] ?? localUrls[locale];
+  // Для ru-RU отдельного канала сообщества нет — показываем английский.
+  const lookupLocale: Locale = locale === "ru-RU" ? "en-US" : locale;
+  return remoteUrls[lookupLocale] ?? localUrls[lookupLocale];
 }
 
 export function getForceUpdateMinimalVersionFromConfig(config: unknown): string | undefined {

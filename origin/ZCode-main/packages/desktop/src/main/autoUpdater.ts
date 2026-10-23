@@ -692,7 +692,7 @@ function normalizeLocalizedReleaseNotes(
     return undefined;
   }
 
-  for (const locale of ["zh-CN", "en-US"] as const) {
+  for (const locale of ["zh-CN", "en-US", "ru-RU"] as const) {
     const entry = releaseNotesByLocale[locale];
     if (!entry) {
       continue;
@@ -840,8 +840,8 @@ function pickFallbackReleaseNotesMarkdown(
 ): string | null {
   return (
     localized?.[menuLocale]?.markdown ??
-    localized?.["zh-CN"]?.markdown ??
     localized?.["en-US"]?.markdown ??
+    localized?.["zh-CN"]?.markdown ??
     null
   );
 }

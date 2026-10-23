@@ -22,7 +22,7 @@ export function getLocalizedUpdateReleaseNotes(
     payload.releaseNotesByLocale?.[locale] ??
     (locale === "zh-CN"
       ? defaultReleaseNotes
-      : (payload.releaseNotesByLocale?.["zh-CN"] ?? defaultReleaseNotes))
+      : (payload.releaseNotesByLocale?.["en-US"] ?? defaultReleaseNotes))
   );
 }
 

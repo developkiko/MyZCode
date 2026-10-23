@@ -1,10 +1,14 @@
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
-import { parseMarketingTouchResponse, type ApiClient } from "@zcode/shared";
+import { parseMarketingTouchResponse, type ApiClient, type Locale } from "@zcode/shared";
 import { readApiJson } from "#src/providers/api/apiJson.js";
 import type { IMarketingTouchService } from "#src/marketing-touch/marketingTouch.js";
 
 const localeSchema = z.enum(["zh-CN", "en-US"]);
+// Сервер отдаёт маркетинговый контент только на zh/en; прочие локали (в т.ч. ru-RU) → en-US.
+function toServerLocale(locale: Locale): "zh-CN" | "en-US" {
+  return locale === "zh-CN" ? "zh-CN" : "en-US";
+}
 // 序号属于本次服务进程启动，不能随组件、账号或服务实例重建而归零。
 let bootRequestSeq = 0;
 const reportSchema = z.object({
@@ -24,7 +28,7 @@ export function createMarketingTouchService(options: {
 }): IMarketingTouchService {
   let previousToken: string | undefined;
   let scope = randomUUID();
-  async function context(locale: "zh-CN" | "en-US") {
+  async function context(locale: Locale) {
     const token = (await options.getToken())?.trim() || "";
     if (previousToken !== token) {
       previousToken = token;
@@ -35,7 +39,7 @@ export function createMarketingTouchService(options: {
       scope,
       headers: {
         "X-Device-Mid": device,
-        "X-Client-Language": localeSchema.parse(locale),
+        "X-Client-Language": localeSchema.parse(toServerLocale(locale)),
         "X-ZCode-App-Version": options.appVersion,
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
@@ -59,7 +63,7 @@ export function createMarketingTouchService(options: {
       return { ...snapshot, scope: identity.scope };
     },
     async report(input) {
-      const parsed = reportSchema.parse(input);
+      const parsed = reportSchema.parse({ ...input, locale: toServerLocale(input.locale) });
       const identity = await context(parsed.locale);
       // 领取期间账号可能已切换；禁止把旧操作用新凭据上报，也不向 UI 暴露凭据。
       if (identity.scope !== parsed.scope) throw new Error("marketing_identity_changed");
