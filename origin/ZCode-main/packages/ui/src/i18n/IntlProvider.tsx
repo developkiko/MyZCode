@@ -6,11 +6,13 @@ import type { BroadcastMessage, IBroadcastService, ISettingService } from "@zcod
 import { readNavigatorLanguage, readSafeLocalStorage, writeSafeLocalStorage } from "@/lib/browserEnvironment.js";
 import zhCN from "./locales/zh-CN.js";
 import enUS from "./locales/en-US.js";
+import ruRU from "./locales/ru-RU.js";
 
 /** 语言 → 翻译消息映射 */
 const MESSAGES: Record<Locale, Record<string, string>> = {
   "zh-CN": zhCN,
   "en-US": enUS,
+  "ru-RU": ruRU,
 };
 
 /** 简易 intl 工具：根据 id 查找翻译，支持 {key} 占位符替换 */
@@ -27,7 +29,7 @@ interface LocaleBroadcastPayload {
 }
 
 function isLocale(value: unknown): value is Locale {
-  return value === "zh-CN" || value === "en-US";
+  return value === "zh-CN" || value === "en-US" || value === "ru-RU";
 }
 
 function isLocalePreference(value: unknown): value is LocalePreference {
@@ -157,7 +159,9 @@ export function ZCodeIntlProvider({
 
     return language.toLowerCase().startsWith("zh")
       ? "zh-CN"
-      : "en-US";
+      : language.toLowerCase().startsWith("ru")
+        ? "ru-RU"
+        : "en-US";
   }, []);
   const resolveSystemLocale = useCallback(async (): Promise<Locale> => {
     const resolvedLocale = await resolveHostSystemLocale?.();

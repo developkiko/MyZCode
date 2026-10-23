@@ -154,8 +154,10 @@ export function installPluginSandboxHost(input: {
     });
 
   // 页面浏览器权限闸门：确认框由 main 原生弹出，父窗口是登记该沙箱的宿主窗口，页面无法伪造。
-  const resolveLocale = (): Locale =>
-    app.getLocale().toLowerCase().startsWith("zh") ? "zh-CN" : "en-US";
+  const resolveLocale = (): Locale => {
+    const language = app.getLocale().toLowerCase();
+    return language.startsWith("zh") ? "zh-CN" : language.startsWith("ru") ? "ru-RU" : "en-US";
+  };
   const permissions = createPluginSandboxPermissionGate({
     registry,
     async prompt({ record, permissions: pending }) {

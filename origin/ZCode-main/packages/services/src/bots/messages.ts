@@ -1,6 +1,6 @@
 import type { Locale } from "@zcode/shared";
 
-export type BotMessageLocale = Extract<Locale, "zh-CN" | "en-US">;
+export type BotMessageLocale = Extract<Locale, "zh-CN" | "en-US" | "ru-RU">;
 
 type MessageValues = Record<string, string | number | undefined>;
 
@@ -267,12 +267,148 @@ const messages = {
     replyMissing: "Reply detail option not found.",
     replyChanged: "Third-party reply detail changed to {mode}.",
   },
+  "ru-RU": {
+    botDisabled: "Этот бот не включён.",
+    groupOwnerOnly: "Это действие доступно только владельцу привязанного бота.",
+    groupNotEnabled: "Группа не включена. Пусть владелец бота упомянет его командой /enable.",
+    groupEnabled:
+      "Группа включена. История тем по умолчанию включена; файлы рабочей папки общие и могут правиться параллельно.\n\nПеред использованием тем попросите администратора приложения выдать нужные разрешения:\n1. Откройте [консоль разработчика]({permissionsUrl}) и выберите это приложение бота.\n2. В управлении разрешениями включите права на чтение сообщений от имени приложения, включая `im:message.group_msg` (чтение сообщений групп). Чтобы получать @упоминания от других ботов, включите также `im:message.group_at_msg.include_bot:readonly`; для сообщений ботов в темах без упоминаний — `im:message.group_msg.include_bot:read`.\n3. Необязательно: включите `im:chat.members:read` (просмотр участников), чтобы показывать имена отправителей. Без этого права задачи всё равно выполняются.\n4. Опубликуйте изменения и упомяните бота в теме.\n\nВключение группы не выдаёт права приложения; без прав на чтение истории тем задачи в темах выполняться не будут.",
+    groupDisabled: "Группа отключена. Принятые задачи остались в Desktop.",
+    privateChatOnly: "Боты пока не поддерживают группы. Напишите боту в личный чат.",
+    bindPrivateOnly: "Привязка возможна только в личном чате.",
+    userNotBound:
+      "Этот бот не привязан. Сгенерируйте код привязки в интерфейсе ZCode и отправьте **/bind <код>**.",
+    commandNotAllowed: "Эта команда отключена для текущего бота.",
+    noWorkspaceAllowed: "Нет доступных рабочих папок. Сначала разрешите их в настройках ботов.",
+    workspaceOutOfScope:
+      "Рабочая папка этого чата больше не авторизована. Выберите заново: **/project**.",
+    bindCodeInvalid: "Код привязки неверен или истёк. Сгенерируйте новый в интерфейсе ZCode.",
+    bindBotMissing: "Привязка не удалась: бот не существует.",
+    bindSuccess: "Привязка выполнена. Отправьте **/help**, чтобы увидеть команды.",
+    weixinActivatedWelcome:
+      "Weixin-бот активен. Отправьте **/help** для списка команд или просто опишите задачу.",
+    helpTitle: "Команды бота ZCode:",
+    helpHelp: "**/help** — показать эту справку",
+    helpBind: "**/bind <код>** — привязать этот чат",
+    helpStatus: "**/status** — рабочая папка, модель и состояние задачи",
+    helpNew: "/new или /clear — начать новый черновик задачи",
+    helpWorkspace: "**/project** — сменить рабочую папку",
+    helpModel: "**/model** — сменить модель",
+    helpMode: "**/mode** — сменить режим работы",
+    helpThoughtLevel: "**/think** — сменить уровень размышлений",
+    helpReply: "**/reply** — сменить детальность ответов",
+    webhookSecretInvalid: "Проверка webhook-секрета не пройдена.",
+    callbackFailed: "Не удалось обработать действие бота: {message}",
+    sessionExpiredNewTaskHint:
+      "Сессия задачи истекла: возможно, задача удалена или сообщение устарело. Отправьте **/new task**, чтобы создать новую, и продолжите работу.",
+    deletedTaskReplaced:
+      "Прежняя задача была удалена, поэтому я создал новую. Это сообщение будет обработано в новой задаче без прежней истории переписки.",
+    received: "Принято.",
+    attachmentOnlyPrompt: "Посмотрите вложение и помогите, исходя из его содержания.",
+    attachmentRejected: "Не удалось обработать вложение: {message}",
+    attachmentDownloadUnavailable:
+      "Не удалось скачать вложение. Файл мог устареть, быть удалён, или у бота нет прав на чтение. Отправьте вложение ещё раз и попробуйте снова.",
+    attachmentTooLarge: "Вложение больше 5 МБ. Сожмите его и отправьте снова.",
+    selectionCancelled: "Отменено.",
+    selectionCancelOption: "Отмена",
+    selectionTextHint: "Ответьте цифрой; 0 — отмена.",
+    selectionTextHintNoCancel: "Ответьте цифрой.",
+    newTaskDraft: "Создан черновик новой задачи в {workspacePath}.",
+    workspaceSelectTitle: "Текущая папка {workspace}\nВыберите рабочую папку",
+    workspaceMissing: "Доступных рабочих папок нет.",
+    modelSelectTitle: "Выберите модель",
+    modelProviderSelectTitle: "Текущая модель {model}\nВыберите поставщика модели",
+    modelModelSelectTitle: "Текущая модель {model}\nВыберите модель",
+    modelMissing: "Модель не найдена.",
+    sessionModelUnavailable:
+      "Выбранная в сессии модель недоступна. Выберите заново через /model. Ваш прежний выбор сохранён.",
+    modeSelectTitle: "Текущий режим {mode}\nВыберите режим",
+    modeMissing: "Вариант режима не найден.",
+    modeChanged: "Режим задачи изменён на {mode}.",
+    modeLocked: "Бот закреплён в режиме **yolo**, переключение недоступно.",
+    thoughtLevelSelectTitle: "Текущий уровень размышлений {level}\nВыберите уровень",
+    thoughtLevelMissing: "Текущая модель не поддерживает уровень размышлений.",
+    thoughtLevelChanged: "Уровень размышлений задачи изменён на {level}.",
+    modelProviderMissing: "Поставщик модели не найден.",
+    modelChanged: "Модель задачи изменена на {model}.",
+    taskMissing: "Задача не найдена.",
+    taskChanged: "Переключено на задачу: {title}",
+    noActiveTask: "Активной задачи нет.",
+    permissionExpired: "Срок запроса разрешения истёк. Обработайте его в интерфейсе ZCode.",
+    permissionHandled: "Запрос разрешения уже обработан.",
+    permissionDenied: "В запросе разрешения отказано.",
+    permissionSubmitted: "Ответ на запрос разрешения отправлен.",
+    elicitationExpired: "Срок запроса-вопроса истёк. Обработайте его в интерфейсе ZCode.",
+    elicitationHandled: "Запрос-вопрос уже обработан.",
+    elicitationSubmitted: "Ответ на запрос-вопрос отправлен.",
+    elicitationCancelled: "Запрос-вопрос отменён.",
+    elicitationCustomOption: "Свой ответ",
+    elicitationCustomPlaceholder: "Введите свой ответ",
+    elicitationQuestionTitle: "Вопрос",
+    planApprovalTitle: "Просмотрите этот план реализации.",
+    planApprovalHeader: "План реализации",
+    planApprovalApprove: "Одобрить",
+    planApprovalApproveDescription: "Выйти из режима плана и начать реализацию.",
+    elicitationCancelledCard: "✅ Вопросы отменены",
+    elicitationSubmitOption: "Готово",
+    elicitationSkipOption: "Пропустить",
+    elicitationMultiSelectHint:
+      "Можно выбрать несколько вариантов; повторный выбор снимает его, затем выберите «Готово».",
+    elicitationTextHint: "Можно также ответить обычным текстом — он пойдёт как ваш ответ.",
+    statusWorkspace: "Рабочая папка",
+    statusModel: "Модель",
+    statusTask: "Задача",
+    statusState: "Состояние",
+    statusWorked: "Работал",
+    statusProgress: "Ход работы",
+    statusDraft: "черновик",
+    statusRemoteDisconnected: "нет связи с удалённой папкой",
+    statusCancelled: "отменено",
+    statusStopped: "остановлено",
+    streamingStatusRunning: "⏳ Выполняется",
+    streamingStatusCompleted: "✅ Готово",
+    streamingStatusFailed: "Ошибка",
+    streamingWorking: "Обрабатываю...",
+    streamingToolSummaries: "Сводка по инструментам",
+    stopSubmitted: "Генерация текущей задачи остановлена.",
+    unknownCommand: "Неизвестная команда: **/{command}**",
+    taskFailed: "Задача завершилась ошибкой: {message}",
+    groupTaskQueued:
+      "У текущей задачи есть очередь ввода (возможно, она на паузе). Обработайте или уберите её в Desktop перед переключением задач; /stop не очищает очередь.",
+    groupTaskInteraction:
+      "Текущая задача ждёт ответа или подтверждения. Разберите его или используйте /stop, чтобы завершить задачу.",
+    groupTaskDisconnected:
+      "Удалённая рабочая папка отключена. Используйте /reconnect, прежде чем проверять состояние задачи.",
+    taskRunning:
+      "Текущая задача ещё выполняется. Повторите позже или используйте **/stop**, чтобы её остановить.",
+    taskSelectTitle: "Текущая задача {task}\nВыберите задачу",
+    noHistoryTasks: "В этой рабочей папке нет прошлых задач.",
+    remoteDisconnected:
+      "Удалённая папка {workspacePath} не подключена. Сначала отправьте **/reconnect**, затем повторите. Прошлый запрос не выполнен.",
+    remoteDisconnectedStatus:
+      "Удалённая папка {workspacePath} не подключена. Отправьте **/reconnect**, чтобы восстановить связь.",
+    remoteWorkspaceSelectedDisconnected:
+      "Переключено на {workspacePath}, но связь отсутствует. Отправьте **/reconnect** перед запуском задач.",
+    remoteReconnectStarting: "Удалённая папка {workspacePath} не подключена, переподключаю...",
+    remoteReconnectFailed:
+      "Не удалось переподключиться к {workspacePath}: {message}\nПрошлый запрос не выполнен.",
+    remoteReconnectUnavailable:
+      "Удалённая папка {workspacePath} не подключена, но бот не может достучаться до службы переподключения. Откройте этот удалённый проект в ZCode и повторите.",
+    remoteReconnectLocal:
+      "Текущая папка локальная, переподключение не нужно. Отправьте **/project**, чтобы переключиться на удалённый проект.",
+    remoteReconnectAlreadyConnected: "Удалённая папка {workspacePath} уже подключена.",
+    replySelectTitle: "Текущая детальность ответов {mode}\nВыберите детальность ответов",
+    replyMissing: "Вариант детальности не найден.",
+    replyChanged: "Детальность ответов изменена на {mode}.",
+  },
 } as const;
 
 export type BotMessageId = keyof (typeof messages)[BotMessageLocale];
 
 export function normalizeBotMessageLocale(locale: Locale | undefined): BotMessageLocale {
-  return locale === "en-US" ? "en-US" : DEFAULT_BOT_MESSAGE_LOCALE;
+  if (locale === "en-US") return "en-US";
+  if (locale === "ru-RU") return "ru-RU";
+  return DEFAULT_BOT_MESSAGE_LOCALE;
 }
 
 export function formatBotMessage(
