@@ -22,7 +22,21 @@
 - [x] Переключение DevTools по F12 (accelerator пункта меню «Справка»)
 - [x] Отдельная личность приложения (appId, exe, userData %APPDATA%\MyZCode — сосуществование с оригиналом)
 - [x] OAuth-сосуществование: перезахват zcode:// перед логином + пересылка чужих колбэков оригиналу
+- [x] Изоляция данных: MyZCode хранит всё в `~/.myzcode-data` (не трогает `~/.zcode` оригинала)
+- [x] Кнопка «Импорт из оригинального ZCode» в Настройки → Общие: переносит setting.json
+      (со слиянием: наш dataBaseDir и русский язык сохраняются), credentials.json, config.json,
+      provider_config.json, bot-config.v3.json, onboarding/coding-plan
 - [x] Сборка MyZCode (electron-builder, Electron 41.0.3): `pnpm bootstrap` → `pnpm --filter @zcode/desktop build`
+
+## Изоляция и импорт (v3.16.2-ru.3)
+
+- Корень данных MyZCode: `~/.myzcode-data/.zcode` (бутстрап: `desktopDataBaseDirBootstrap.ts`).
+  Оригинальный `~/.zcode` не читается и не пишется.
+- CLI-агент получает `ZCODE_DATA_BASE_DIR` автоматически — изоляция распространяется и на него.
+- Импорт: Настройки → Общие → «Импорт из оригинального ZCode» → «Импортировать».
+  Команда `importFromOriginalZCode` (desktop-command IPC), модуль `desktopImportFromOriginalZCode.ts`.
+  Штатный перенос папки данных (dataBaseDir) продолжает работать внутри нашего корня.
+
 
 ## Совместное использование с оригинальным ZCode (один ПК)
 
