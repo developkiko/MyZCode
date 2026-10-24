@@ -14,6 +14,7 @@ import {
   TID_SETTINGS_TOOL_SEARCH_OPTION,
 } from "@zcode/shared/test-ids";
 import { useState, useCallback, useEffect } from "react";
+import { DesktopCommandIds } from "@zcode/shared";
 import type { IPlatformService } from "@zcode/shared";
 import {
   TID_SETTINGS_LOCALE_SELECT_ITEM,
@@ -33,6 +34,7 @@ import { Button } from "@/components/ui/button.js";
 import { SettingsBadge, SettingsGroupCard, SettingsRow } from "@/settings/SettingsPageParts.js";
 import { DataBaseDirControl } from "@/settings/DataBaseDirControl.js";
 import { useZCodeIntl } from "@/i18n/IntlProvider.js";
+import { usePlatform } from "@/hooks/usePlatform.js";
 import { useOptionalServices } from "@/hooks/useServices.js";
 import { ProactiveSuggestionsSetting } from "@/settings/ProactiveSuggestionsSetting.js";
 import { DynamicWorkflowModeSetting } from "@/settings/DynamicWorkflowModeSetting.js";
@@ -973,6 +975,8 @@ export function GeneralSectionContent({
         />
       </SettingsGroupCard>
 
+      <ImportFromOriginalZCodeSetting isDesktop={isDesktop} />
+
       <SettingsGroupCard>
         <SettingsRow
           label={intl.formatMessage({ id: "settings.onboarding" })}
@@ -999,5 +1003,73 @@ export function GeneralSectionHeader({ localePreference }: { localePreference: L
         {intl.formatMessage({ id: `settings.locale.${localePreference}` })}
       </SettingsBadge>
     </div>
+  );
+}
+
+/** MyZCode: разовый перенос конфигов из оригинального ZCode в изолированные данные MyZCode. */
+function ImportFromOriginalZCodeSetting({ isDesktop }: { isDesktop?: boolean }) {
+  const { intl } = useZCodeIntl();
+  const platform = usePlatform();
+  const [running, setRunning] = useState(false);
+  const [summary, setSummary] = useState<string | null>(null);
+
+  const handleImport = useCallback(async () => {
+    if (running) {
+      return;
+    }
+    setRunning(true);
+    setSummary(null);
+    try {
+      const result = (await platform.executeDesktopCommand(
+        DesktopCommandIds.ImportFromOriginalZCode,
+      )) as
+        | { sourceDir: string | null; copiedFiles: string[]; mergedFiles: string[]; errors: string[] }
+        | undefined;
+      if (result && result.errors.length === 0) {
+        const count = result.copiedFiles.length + result.mergedFiles.length;
+        setSummary(
+          intl.formatMessage({ id: "settings.importFromOriginalZCode.done" }, { count }),
+        );
+        return;
+      }
+      setSummary(
+        intl.formatMessage({ id: "settings.importFromOriginalZCode.failed" }),
+      );
+    } catch {
+      setSummary(intl.formatMessage({ id: "settings.importFromOriginalZCode.failed" }));
+    } finally {
+      setRunning(false);
+    }
+  }, [intl, platform, running]);
+
+  if (!isDesktop) {
+    return null;
+  }
+
+  return (
+    <SettingsGroupCard>
+      <SettingsRow
+        label={intl.formatMessage({ id: "settings.importFromOriginalZCode" })}
+        description={intl.formatMessage({ id: "settings.importFromOriginalZCodeDescription" })}
+        control={
+          <Button
+            type="button"
+            size="lg"
+            variant="outline"
+            disabled={running}
+            onClick={() => void handleImport()}
+          >
+            {intl.formatMessage({
+              id: running
+                ? "settings.importFromOriginalZCode.running"
+                : "settings.importFromOriginalZCode.run",
+            })}
+          </Button>
+        }
+      />
+      {summary ? (
+        <div className="px-4 pb-4 text-ui-sm text-foreground-subtle">{summary}</div>
+      ) : null}
+    </SettingsGroupCard>
   );
 }

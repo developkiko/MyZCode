@@ -3292,7 +3292,15 @@ const enUS: Record<string, string> = {
   "settings.taskAutoArchiveDays.option.7": "Archive after 7 days",
   "settings.taskAutoArchiveDays.option.14": "Archive after 14 days",
   "settings.taskAutoArchiveDays.option.30": "Archive after 30 days",
-  "settings.dataBaseDir": "Data storage path",
+    "settings.importFromOriginalZCode": "Import from original ZCode",
+  "settings.importFromOriginalZCodeDescription":
+    "Copy configs (settings, accounts, bot, providers) from the original ZCode data folder into MyZCode.",
+  "settings.importFromOriginalZCode.run": "Import",
+  "settings.importFromOriginalZCode.running": "Importing…",
+  "settings.importFromOriginalZCode.done": "Imported {count} file(s). Restart MyZCode to apply.",
+  "settings.importFromOriginalZCode.failed":
+    "Import failed. Make sure the original ZCode is installed and try again.",
+"settings.dataBaseDir": "Data storage path",
   "settings.dataBaseDirDescription":
     "Root directory for app data (defaults to user home directory). Existing data will be copied to the new location. The .zcode/v2 suffix cannot be changed.",
   "settings.dataBaseDirPlaceholder": "Default: user home directory",

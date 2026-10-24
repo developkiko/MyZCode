@@ -37,11 +37,23 @@ function readBootstrapDataBaseDirFromDisk(
 }
 
 export function applyEarlyDataBaseDirBootstrap(): string | null {
-  const dataBaseDir = readBootstrapDataBaseDirFromDisk();
-  if (dataBaseDir) {
-    // 启动早期就把 dataBaseDir 注入进来，避免 logger / crashReporter 先按默认 HOME 建目录，
-    // 导致后续再切换到自定义目录时，日志和 crash dump 落在两套路径里。
-    setDataBaseDir(dataBaseDir);
-  }
+  // MyZCode: изолированные данные — свой корень (~/.myzcode-data) и свой bootstrap-файл,
+  // чтобы не читать настройку dataBaseDir из ~/.zcode оригинального ZCode и не делить
+  // с ним конфиги/аккаунты. Пользователь может перенести данные штатной настройкой
+  // «Путь хранения данных» — она пишется в bootstrap-файл уже внутри нашего корня.
+  const dataBaseDir =
+    readBootstrapDataBaseDirFromDisk(resolveMyZCodeBootstrapSettingsFile()) ??
+    resolveMyZCodeDataRoot();
+  setDataBaseDir(dataBaseDir);
   return dataBaseDir;
+}
+
+/** MyZCode: корень изолированных данных (аналог домашней папки оригинала). */
+export function resolveMyZCodeDataRoot(homePath: string = homedir()): string {
+  return join(homePath, ".myzcode-data");
+}
+
+/** MyZCode: bootstrap-файл внутри нашего корня — раньше всех читается при старте. */
+export function resolveMyZCodeBootstrapSettingsFile(homePath: string = homedir()): string {
+  return join(resolveMyZCodeDataRoot(homePath), ".zcode", "v2", "setting.json");
 }

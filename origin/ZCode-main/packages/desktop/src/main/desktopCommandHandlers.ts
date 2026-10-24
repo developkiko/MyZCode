@@ -27,6 +27,7 @@ import { showAboutDialog } from "./about.js";
 import { checkForUpdateMenuClick } from "./autoUpdater.js";
 import { resolveCuaOsSupport } from "./cuaOsSupport.js";
 import { syncWindowControlsOverlayForZoomLevel } from "./desktopWindowButtonPosition.js";
+import { importFromOriginalZCode } from "./desktopImportFromOriginalZCode.js";
 import {
   DEFAULT_DESKTOP_WINDOW_HEIGHT,
   DEFAULT_DESKTOP_WINDOW_WIDTH,
@@ -688,5 +689,7 @@ export async function executeDesktopCommand(options: {
       return;
     case DesktopCommandIds.GetCuaOsSupport:
       return resolveCuaOsSupport();
+    case DesktopCommandIds.ImportFromOriginalZCode:
+      return importFromOriginalZCode();
   }
 }

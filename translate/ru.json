@@ -7153,5 +7153,11 @@
   "globalNotice.highspeed.close": "Закрыть карточку публикации Highspeed",
   "settings.locale.ru-RU": "Русский",
   "sidebar.settings.locale.ru-RU": "Русский",
-  "settings.plugins.store.browseAll": "Все плагины"
+  "settings.plugins.store.browseAll": "Все плагины",
+  "settings.importFromOriginalZCode": "Импорт из оригинального ZCode",
+  "settings.importFromOriginalZCodeDescription": "Скопировать конфиги (настройки, аккаунты, бот, провайдеры) из папки данных оригинального ZCode в MyZCode.",
+  "settings.importFromOriginalZCode.run": "Импортировать",
+  "settings.importFromOriginalZCode.running": "Импорт…",
+  "settings.importFromOriginalZCode.done": "Импортировано файлов: {count}. Перезапустите MyZCode, чтобы применить.",
+  "settings.importFromOriginalZCode.failed": "Импорт не удался. Убедитесь, что оригинальный ZCode установлен, и повторите."
 }

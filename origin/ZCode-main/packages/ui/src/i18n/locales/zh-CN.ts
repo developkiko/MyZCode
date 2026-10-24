@@ -3082,7 +3082,15 @@ const zhCN: Record<string, string> = {
   "settings.taskAutoArchiveDays.option.7": "7 天后归档",
   "settings.taskAutoArchiveDays.option.14": "14 天后归档",
   "settings.taskAutoArchiveDays.option.30": "30 天后归档",
-  "settings.dataBaseDir": "数据存储路径",
+    "settings.importFromOriginalZCode": "从原版 ZCode 导入",
+  "settings.importFromOriginalZCodeDescription":
+    "将原版 ZCode 数据文件夹中的配置（设置、账号、机器人、服务商）复制到 MyZCode。",
+  "settings.importFromOriginalZCode.run": "导入",
+  "settings.importFromOriginalZCode.running": "导入中…",
+  "settings.importFromOriginalZCode.done": "已导入 {count} 个文件。请重启 MyZCode 以生效。",
+  "settings.importFromOriginalZCode.failed":
+    "导入失败。请确认原版 ZCode 已安装后重试。",
+"settings.dataBaseDir": "数据存储路径",
   "settings.dataBaseDirDescription":
     "应用数据的根目录（默认为用户主目录），修改后会将现有数据复制到新位置。路径后缀 .zcode/v2 不可更改。",
   "settings.dataBaseDirPlaceholder": "默认：用户主目录",
