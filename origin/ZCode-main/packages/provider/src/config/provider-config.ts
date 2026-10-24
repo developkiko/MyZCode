@@ -297,10 +297,13 @@ export class ProviderTemplate {
 export function resolveProviderTemplateName(
   templateId: ProviderTemplateId,
   template: Pick<ProviderTemplate, "templateNameMap">,
-  locale: ProviderTemplateLocale,
+  // Принимаем любой Locale: шаблоны приходят с сервера только на zh/en,
+  // остальные локали (например ru-RU) читают английское имя.
+  locale: ProviderTemplateLocale | string,
 ): string {
+  const lookup = locale === "zh-CN" ? "zh-CN" : "en-US";
   return (
-    template.templateNameMap[locale]?.trim() ||
+    template.templateNameMap[lookup]?.trim() ||
     template.templateNameMap["en-US"]?.trim() ||
     templateId
   );

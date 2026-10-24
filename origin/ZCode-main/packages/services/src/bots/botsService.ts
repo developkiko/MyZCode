@@ -616,9 +616,6 @@ function sortBotPermissionOptions(
 
 function formatBotPermissionOptionLabel(option: ZCodePermissionOption, locale?: Locale): string {
   const displayKind = getBotPermissionOptionDisplayKind(option);
-  if (displayKind === "custom") {
-    return option.name;
-  }
   if (locale === "ru-RU") {
     switch (displayKind) {
       case "allowOnce":

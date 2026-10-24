@@ -10,6 +10,7 @@ const WORKFLOW_VERSION = "5";
 const SERVICES_MENU_LABELS: Record<Locale, string> = {
   "zh-CN": "在ZCode中打开",
   "en-US": "Open in ZCode",
+  "ru-RU": "Открыть в ZCode",
 };
 
 const workflowScript = `first=""

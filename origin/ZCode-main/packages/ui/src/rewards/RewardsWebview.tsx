@@ -221,7 +221,7 @@ export function RewardsWebview({ onClose }: { onClose: () => void }) {
           createRewardsInjectionScript(
             {
               theme,
-              locale,
+              locale: rewardsLocale,
               auth: { status: "anonymous", provider: null, revision: generation.current },
             },
             {},

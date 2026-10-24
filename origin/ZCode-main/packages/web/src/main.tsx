@@ -317,7 +317,8 @@ async function renderConversationSharePage(): Promise<void> {
     root.render(
       <ConversationShareLandingStatus
         state={{ kind: "error", error: "invalid_contract" }}
-        locale={routeLocale}
+        // Лендинг шаринга существует только на zh/en; прочие локали — английский.
+        locale={routeLocale === "zh-CN" ? "zh-CN" : "en-US"}
       />,
     );
     return;
@@ -371,7 +372,7 @@ async function renderConversationSharePage(): Promise<void> {
         });
       }}
       onLogout={onLogout}
-      locale={routeLocale}
+      locale={routeLocale === "zh-CN" ? "zh-CN" : "en-US"}
       theme={resolveWebThemePreference("zai-light")}
     />,
   );

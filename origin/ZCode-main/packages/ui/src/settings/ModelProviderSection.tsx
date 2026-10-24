@@ -1000,7 +1000,11 @@ export function ModelProviderSection({
     async (input: { templateId?: string; providerName?: string }) => {
       setCreatingProvider(true);
       try {
-        const created = await createPersonalProvider({ ...input, locale });
+        const created = await createPersonalProvider({
+          ...input,
+          // Шаблоны провайдеров приходят с сервера только на zh/en.
+          locale: locale === "zh-CN" ? ("zh-CN" as const) : ("en-US" as const),
+        });
         setPendingCreatedProviderId(created.providerId);
         setSelectedNodeKey(createCustomProviderNodeKey(created.providerId));
         setTemplatePickerOpen(false);
