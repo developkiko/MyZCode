@@ -7,8 +7,11 @@ export const ZCODE_PREVIEW_IDENTITY_ENV = "ZCODE_PREVIEW_IDENTITY";
 
 const PRODUCTION_IDENTITY = Object.freeze({
   flavor: "production",
-  appId: "dev.zcode.app",
-  productName: "ZCode",
+  // Свой appId → свой AUMID и GUID установщика: панель задач не смешивает
+  // MyZCode с официальным ZCode, апдейтеры друг друга не трогают.
+  appId: "dev.myzcode.app",
+  // MyZCode: отдельное имя установщика/ярлыка/exe, чтобы сосуществовать с официальным ZCode.
+  productName: "MyZCode",
   linuxExecutableName: "zcode",
   linuxPackageName: "zcode",
   cuaHelperInstallVariant: null,

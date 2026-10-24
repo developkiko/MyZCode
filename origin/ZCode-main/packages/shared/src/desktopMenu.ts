@@ -107,8 +107,8 @@ export const desktopMenuMessages: Record<Locale, DesktopMenuLocaleMessages> = {
     "desktopMenu.help.downloadingUpdateProgress": "正在下载更新... {progress}",
     "desktopMenu.help.restartToUpdate": "重启以更新（{version}）",
     "dock.menu.showCurrentWindow": "显示当前窗口",
-    "tray.tooltip": "ZCode",
-    "tray.menu.openZCode": "打开 ZCode",
+    "tray.tooltip": "MyZCode",
+    "tray.menu.openZCode": "打开 MyZCode",
     "tray.menu.quit": "退出",
   },
   "en-US": {
@@ -159,8 +159,8 @@ export const desktopMenuMessages: Record<Locale, DesktopMenuLocaleMessages> = {
     "desktopMenu.help.downloadingUpdateProgress": "Downloading update... {progress}",
     "desktopMenu.help.restartToUpdate": "Restart to update ({version})",
     "dock.menu.showCurrentWindow": "Show current window",
-    "tray.tooltip": "ZCode",
-    "tray.menu.openZCode": "Open ZCode",
+    "tray.tooltip": "MyZCode",
+    "tray.menu.openZCode": "Open MyZCode",
     "tray.menu.quit": "Quit",
   },
   "ru-RU": {
@@ -211,8 +211,8 @@ export const desktopMenuMessages: Record<Locale, DesktopMenuLocaleMessages> = {
     "desktopMenu.help.downloadingUpdateProgress": "Скачивание обновления... {progress}",
     "desktopMenu.help.restartToUpdate": "Перезапустить для обновления ({version})",
     "dock.menu.showCurrentWindow": "Показать текущее окно",
-    "tray.tooltip": "ZCode",
-    "tray.menu.openZCode": "Открыть ZCode",
+    "tray.tooltip": "MyZCode",
+    "tray.menu.openZCode": "Открыть MyZCode",
     "tray.menu.quit": "Выход",
   },
 };
