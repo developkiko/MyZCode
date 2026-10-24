@@ -2840,7 +2840,16 @@ const ruRU: Record<string, string> = {
   "settings.taskAutoArchiveDays.option.7": "Архивировать через 7 дней",
   "settings.taskAutoArchiveDays.option.14": "Архивировать через 14 дней",
   "settings.taskAutoArchiveDays.option.30": "Архивировать через 30 дней",
-  "settings.dataBaseDir": "Путь хранения данных",
+    "settings.importFromOriginalZCode": "Импорт из оригинального ZCode",
+  "settings.importFromOriginalZCodeDescription":
+    "Скопировать конфиги (настройки, аккаунты, бот, провайдеры) из папки данных оригинального ZCode в MyZCode.",
+  "settings.importFromOriginalZCode.run": "Импортировать",
+  "settings.importFromOriginalZCode.running": "Импорт…",
+  "settings.importFromOriginalZCode.done":
+    "Импортировано файлов: {count}. Перезапустите MyZCode, чтобы применить.",
+  "settings.importFromOriginalZCode.failed":
+    "Импорт не удался. Убедитесь, что оригинальный ZCode установлен, и повторите.",
+"settings.dataBaseDir": "Путь хранения данных",
   "settings.dataBaseDirDescription": "Корневая папка данных приложения (по умолчанию — домашняя папка пользователя). Существующие данные будут скопированы в новое расположение. Суффикс .zcode/v2 изменить нельзя.",
   "settings.dataBaseDirPlaceholder": "По умолчанию: домашняя папка пользователя",
   "settings.dataBaseDirBrowse": "Выбрать папку",
