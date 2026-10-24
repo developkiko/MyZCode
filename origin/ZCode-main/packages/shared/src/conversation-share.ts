@@ -14,10 +14,12 @@ import {
 /**
  * 分享站按语言分路径：中文站带 /cn 前缀，英文站是裸 /share。
  * web 路由、发布回链改写、导入回链共用这一份定义，避免三处各写一遍前缀。
+ * Отдельной русской площадки шаринга нет — ru-RU показываем английский сайт.
  */
 const CONVERSATION_SHARE_LOCALE_PATH_PREFIX: Readonly<Record<Locale, string>> = {
   "zh-CN": "/cn",
   "en-US": "",
+  "ru-RU": "",
 };
 
 const CONVERSATION_SHARE_PATHNAME_RE = /^\/(cn\/)?share\/([^/]+)\/?$/u;
