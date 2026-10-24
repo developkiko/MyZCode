@@ -49,6 +49,7 @@ import {
 import { randomUUID } from "node:crypto";
 import type { UtilityProcess as ElectronUtilityProcess } from "electron";
 import { spawn } from "node:child_process";
+import { existsSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { homedir, hostname } from "node:os";
 import {
@@ -2081,7 +2082,15 @@ app.whenReady().then(async () => {
     if (bootstrapSettings.dataBaseDir) {
       setDataBaseDir(bootstrapSettings.dataBaseDir);
     }
-    if (bootstrapSettings.locale) {
+    // Свежая установка: setting.json ещё не существует, а schema-дефолт locale=zh-CN —
+    // не выбор пользователя. Тогда язык берём из системы (fallback ниже на строке с
+    // !loadedBootstrapLocale), чтобы нативное меню/трей не стартовали с китайского.
+    const bootstrapSettingsHome =
+      process.env.ZCODE_DESKTOP_HOME_DIR?.trim() || app.getPath("home");
+    const persistedSettingsFileExists = existsSync(
+      join(bootstrapSettingsHome, ".zcode", "v2", "setting.json"),
+    );
+    if (bootstrapSettings.locale && persistedSettingsFileExists) {
       loadedBootstrapLocale = true;
       currentApplicationLocale = bootstrapSettings.locale;
     }
