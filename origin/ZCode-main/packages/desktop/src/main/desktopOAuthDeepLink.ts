@@ -1,6 +1,7 @@
 /* oxlint-disable eslint(max-lines) -- Deep Link 路由必须在同一模块内保持协议校验和投递原子性。 */
-import { statSync } from "node:fs";
-import { isAbsolute, resolve } from "node:path";
+import { spawn } from "node:child_process";
+import { existsSync, statSync } from "node:fs";
+import { isAbsolute, join, resolve } from "node:path";
 import { app, BrowserWindow, dialog } from "electron";
 import type { WebContents } from "electron";
 import {
@@ -115,6 +116,44 @@ function focusDeepLinkTargetWindow(targetWindow: BrowserWindow): void {
 
 function hasOAuthAuthorizationCode(parsedUrl: URL): boolean {
   return parsedUrl.searchParams.has("code") || parsedUrl.searchParams.has("authCode");
+}
+
+/** MyZCode: путь к оригинальному ZCode, если он установлен рядом. */
+function findOriginalZCodeExecutable(): string | null {
+  const candidates = [
+    join(process.env["ProgramFiles"] ?? "C:\\Program Files", "ZCode", "ZCode.exe"),
+    join(process.env["LOCALAPPDATA"] ?? "", "Programs", "zcode", "ZCode.exe"),
+  ];
+  return candidates.find((candidate) => candidate !== "" && existsSync(candidate)) ?? null;
+}
+
+/**
+ * MyZCode: оригинальный ZCode и MyZCode регистрируют один и тот же протокол zcode://,
+ * и ОС передаёт колбэк последнему зарегистрировавшемуся приложению. Если к нам прилетел
+ * колбэк с неизвестным state — логин начинали не здесь, пробрасываем URL в оригинал
+ * (запущенный оригинал получит его через second-instance, закрытый — запустится сам).
+ */
+function forwardDeepLinkToOriginalZCode(
+  url: string,
+  logger: { info: (...args: unknown[]) => void; warn: (...args: unknown[]) => void },
+): boolean {
+  if (process.platform !== "win32") {
+    return false;
+  }
+  const exe = findOriginalZCodeExecutable();
+  if (!exe) {
+    return false;
+  }
+  try {
+    spawn(exe, ["--", url], { detached: true, stdio: "ignore" }).unref();
+    logger.info("[deep-link] OAuth-колбэк с чужим state переслан в оригинальный ZCode", { exe });
+    return true;
+  } catch (error) {
+    logger.warn("[deep-link] не удалось переслать колбэк в оригинальный ZCode", {
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return false;
+  }
 }
 
 export function isValidLocalWorkspaceDirectory(path: string): boolean {
@@ -387,6 +426,12 @@ export function handleDeepLink(
     return true;
   }
 
+  // MyZCode: state нам неизвестен — OAuth начинали в оригинальном приложении
+  // (или наш state истёк): пробрасываем колбэк туда, а не оставляем висеть в кэше.
+  if (!routeTarget && forwardDeepLinkToOriginalZCode(url, logger)) {
+    return true;
+  }
+
   pendingDeepLinkUrl = url;
   logger.warn("[deep-link] OAuth 回调未命中目标窗口，先缓存等待 renderer ready", {
     state,
@@ -450,6 +495,12 @@ export function registerDeepLinkProtocol(
 }
 
 export function registerOAuthState(windowId: number, registration: OAuthStateRegistration): void {
+  // MyZCode: перед стартом логина перезабираем ассоциацию zcode://, чтобы колбэк
+  // гарантированно пришёл в нас, даже если оригинальный ZCode регистрировал
+  // протокол позже (Windows хранит одного обработчика на схему).
+  if (process.platform === "win32" && app.isPackaged) {
+    app.setAsDefaultProtocolClient("zcode", process.execPath, ["--"]);
+  }
   oauthStateToWindow.set(registration.state, {
     windowId,
     provider: registration.provider,
