@@ -712,6 +712,7 @@ export const DesktopCommandIds = {
   ClearAllData: "clearAllData",
   ClearCodingPlanWebviewStorage: "clearCodingPlanWebviewStorage",
   GetCuaOsSupport: "getCuaOsSupport",
+  CheckLocalDirectory: "checkLocalDirectory",
   ImportFromOriginalZCode: "importFromOriginalZCode",
 } as const;
 

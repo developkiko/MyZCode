@@ -21,7 +21,8 @@ import {
 } from "@zcode/shared";
 import type { MessageBoxOptions } from "electron";
 import { app, BrowserWindow, dialog, session, shell } from "electron";
-import { readFile } from "node:fs/promises";
+import { constants } from "node:fs";
+import { access, readFile, stat } from "node:fs/promises";
 import { join } from "node:path";
 import { showAboutDialog } from "./about.js";
 import { checkForUpdateMenuClick } from "./autoUpdater.js";
@@ -479,6 +480,30 @@ async function resolveCurrentZCodeEndpointOrigin(settingService: {
   });
 }
 
+/** Проверка локальной папки проекта перед открытием задачи из другого workspace. */
+async function resolveLocalDirectoryAvailability(
+  payload: unknown,
+): Promise<{ path: string | null; available: boolean }> {
+  const requestedPath =
+    payload && typeof payload === "object" && "path" in payload
+      ? (payload as { path?: unknown }).path
+      : undefined;
+  const path = typeof requestedPath === "string" ? requestedPath.trim() : "";
+  if (!path) {
+    return { path: null, available: false };
+  }
+  try {
+    const info = await stat(path);
+    if (!info.isDirectory()) {
+      return { path, available: false };
+    }
+    await access(path, constants.R_OK | constants.X_OK);
+    return { path, available: true };
+  } catch {
+    return { path, available: false };
+  }
+}
+
 export async function executeDesktopCommand(options: {
   command: DesktopCommandId;
   /** 命令专属参数（目前仅 ImportFromOriginalZCode 使用）。 */
@@ -698,5 +723,7 @@ export async function executeDesktopCommand(options: {
       return resolveCuaOsSupport();
     case DesktopCommandIds.ImportFromOriginalZCode:
       return importFromOriginalZCode(options.payload);
+    case DesktopCommandIds.CheckLocalDirectory:
+      return resolveLocalDirectoryAvailability(options.payload);
   }
 }

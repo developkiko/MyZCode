@@ -2379,6 +2379,12 @@ const enUS: Record<string, string> = {
     "You selected a WSL path:\n{path}\n\nWe recommend opening it through WSL connection, though you can still continue with the path.",
   "workspace.wslUncPrompt.openWsl": "Open WSL connection",
   "workspace.wslUncPrompt.continuePath": "Continue with path",
+  "workspaceMissingFolder.title": "Project folder is unavailable",
+  "workspaceMissingFolder.description":
+    "The project folder for this chat no longer exists: {path}. Choose a new folder and the path will be updated for the chat and projects.",
+  "workspaceMissingFolder.selectFolder": "Choose folder",
+  "workspaceMissingFolder.remapFailed": "Could not update the project path. Please try again.",
+  "workspaceMissingFolder.remapDone": "Project path updated: {path}",
   "taskList.codexConnectivityUnavailable":
     "Warmup could not reach {host}. Starting a conversation may fail until the network is available.",
   "workspaceSidebar.workspaces": "Tasks",

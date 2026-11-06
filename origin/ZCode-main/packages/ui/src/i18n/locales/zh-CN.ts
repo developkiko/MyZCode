@@ -2204,6 +2204,12 @@ const zhCN: Record<string, string> = {
     "你选择的是 WSL 路径：\n{path}\n\n建议通过 WSL 连接打开，也可以继续按路径打开。",
   "workspace.wslUncPrompt.openWsl": "打开 WSL 连接",
   "workspace.wslUncPrompt.continuePath": "继续按路径打开",
+  "workspaceMissingFolder.title": "项目文件夹不可用",
+  "workspaceMissingFolder.description":
+    "该对话所属的项目文件夹已不存在：{path}。请选择新的文件夹，对话和项目中的路径将被更新。",
+  "workspaceMissingFolder.selectFolder": "选择文件夹",
+  "workspaceMissingFolder.remapFailed": "无法更新项目路径，请重试。",
+  "workspaceMissingFolder.remapDone": "项目路径已更新：{path}",
   "taskList.codexConnectivityUnavailable":
     "预热检测到当前网络无法访问 {host}，后续对话可能无法正常开始",
   "workspaceSidebar.workspaces": "任务",

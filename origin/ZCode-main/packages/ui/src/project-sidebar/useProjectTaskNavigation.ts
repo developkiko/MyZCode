@@ -10,7 +10,97 @@ import { openWebRemoteControlTask } from "@/hooks/useWebRemoteControlTaskOpen.js
 import { logger } from "@/logger.js";
 import { toast } from "@/components/ui/toast.js";
 import { useZCodeSessionStore } from "@/store/zcodeSessionStore.js";
-import { useTabStore } from "@/store/TabStoreProvider.js";
+import { isWorkspaceTab, isWorkspaceTabReadOnly, type TabStore } from "@/store/tabStore.js";
+import { useTabStore, useTabStoreApi } from "@/store/TabStoreProvider.js";
+import { useOptionalPlatform } from "@/hooks/usePlatform.js";
+import { useConfirmDialog } from "@/hooks/useConfirmDialog.js";
+import { useOptionalProjectDirectory } from "@/project-sidebar/ProjectDirectoryProvider.js";
+import { useZCodeIntl } from "@/i18n/IntlProvider.js";
+import { DesktopCommandIds, type TabId } from "@zcode/shared";
+
+interface MissingWorkspacePrompts {
+  requestConfirmation: (options: {
+    title: string;
+    description?: string;
+    confirmLabel?: string;
+    cancelLabel?: string;
+  }) => Promise<boolean>;
+  formatMessage: (descriptor: { id: string }, values?: Record<string, string | number>) => string;
+}
+
+/**
+ * Импортированный чат может ссылаться на папку, которой на этом ПК нет.
+ * Открываем такой чат только после выбора реальной папки и перепривязки путей.
+ * null — пользователь отказался; staleTabIds закрываются после навигации.
+ */
+async function resolveOpenableLocalWorkspace({
+  path,
+  identity,
+  isCurrent,
+  platform,
+  prompts,
+  refreshDirectory,
+  tabStore,
+}: {
+  path: string;
+  identity?: string;
+  isCurrent: () => boolean;
+  platform: ReturnType<typeof useOptionalPlatform>;
+  prompts: MissingWorkspacePrompts;
+  refreshDirectory?: () => Promise<void>;
+  tabStore: TabStore;
+}): Promise<{ path: string; staleTabIds: TabId[] } | null> {
+  const unchanged = { path, staleTabIds: [] };
+  if (identity?.trim() || !platform) return unchanged;
+  const staleTabs = tabStore
+    .getState()
+    .tabs.filter(isWorkspaceTab)
+    .filter((tab) => tab.workspacePath === path);
+  if (staleTabs.length > 0 && !staleTabs.some(isWorkspaceTabReadOnly)) return unchanged;
+
+  let available = true;
+  try {
+    const probe = (await platform.executeDesktopCommand(
+      DesktopCommandIds.CheckLocalDirectory,
+      { path },
+    )) as { available?: boolean } | undefined;
+    available = probe?.available !== false;
+  } catch {
+    // Проверка недоступна в этой среде — не мешаем открытию.
+    return unchanged;
+  }
+  if (available) return unchanged;
+
+  const confirmed = await prompts.requestConfirmation({
+    title: prompts.formatMessage({ id: "workspaceMissingFolder.title" }),
+    description: prompts.formatMessage({ id: "workspaceMissingFolder.description" }, { path }),
+    confirmLabel: prompts.formatMessage({ id: "workspaceMissingFolder.selectFolder" }),
+    cancelLabel: prompts.formatMessage({ id: "common.cancel" }),
+  });
+  if (!confirmed || !isCurrent()) return null;
+
+  const selected = (await platform.selectDirectory())?.trim();
+  if (!selected || !isCurrent()) return null;
+
+  try {
+    const result = (await platform.executeDesktopCommand(
+      DesktopCommandIds.ImportFromOriginalZCode,
+      { remapProjectPaths: [{ from: path, to: selected }] },
+    )) as { errors?: string[] } | undefined;
+    if (result?.errors?.length) {
+      toast(prompts.formatMessage({ id: "workspaceMissingFolder.remapFailed" }));
+      return null;
+    }
+  } catch {
+    toast(prompts.formatMessage({ id: "workspaceMissingFolder.remapFailed" }));
+    return null;
+  }
+  if (!isCurrent()) return null;
+
+  await refreshDirectory?.();
+  toast(prompts.formatMessage({ id: "workspaceMissingFolder.remapDone" }, { path: selected }));
+  return { path: selected, staleTabIds: staleTabs.map((tab) => tab.id) };
+}
 
 /** 打开任务才绑定 workspace；列表 mutation 不借导航创建 scope。 */
 export function useProjectTaskNavigation(
@@ -19,6 +109,11 @@ export function useProjectTaskNavigation(
   remoteService?: IRemoteProjectService,
 ): ProjectSidebarProps["onSelectTask"] {
   const activeWorkspaceIdentity = useTabStore((state) => state.activeWorkspaceIdentity);
+  const tabStore = useTabStoreApi();
+  const platform = useOptionalPlatform();
+  const requestConfirmation = useConfirmDialog();
+  const projectDirectory = useOptionalProjectDirectory();
+  const { intl } = useZCodeIntl();
   const sequence = useRef(0);
   useLayoutEffect(
     () => () => {
@@ -26,13 +121,43 @@ export function useProjectTaskNavigation(
     },
     [],
   );
-  const latest = useRef({ props, tree, remoteService, activeWorkspaceIdentity });
+  const latest = useRef({
+    props,
+    tree,
+    remoteService,
+    activeWorkspaceIdentity,
+    platform,
+    requestConfirmation,
+    refreshDirectory: projectDirectory?.refresh,
+    formatMessage: intl.formatMessage.bind(intl),
+    tabStore,
+  });
   useLayoutEffect(() => {
-    latest.current = { props, tree, remoteService, activeWorkspaceIdentity };
+    latest.current = {
+      props,
+      tree,
+      remoteService,
+      activeWorkspaceIdentity,
+      platform,
+      requestConfirmation,
+      refreshDirectory: projectDirectory?.refresh,
+      formatMessage: intl.formatMessage.bind(intl),
+      tabStore,
+    };
   });
   return useCallback((path, taskId, identity, remoteSessionId, unreadAt) => {
     const request = ++sequence.current;
-    const { props, tree, remoteService, activeWorkspaceIdentity } = latest.current;
+    const {
+      props,
+      tree,
+      remoteService,
+      activeWorkspaceIdentity,
+      platform,
+      requestConfirmation,
+      refreshDirectory,
+      formatMessage,
+      tabStore,
+    } = latest.current;
     const readFocus = () =>
       props.workspacePath
         ? useZCodeSessionStore
@@ -104,7 +229,20 @@ export function useProjectTaskNavigation(
           });
         }
       }
-      props.onSelectTask(path, taskId, identity, remoteSessionId, unreadAt);
+      const openable = await resolveOpenableLocalWorkspace({
+        path,
+        identity,
+        isCurrent,
+        platform,
+        prompts: { requestConfirmation, formatMessage },
+        refreshDirectory,
+        tabStore,
+      });
+      if (openable === null || !isCurrent()) return;
+      props.onSelectTask(openable.path, taskId, identity, remoteSessionId, unreadAt);
+      // Старые вкладки на исчезнувшую папку закрываем только после навигации:
+      // закрытие активной вкладки до неё сменило бы workspace и отменило открытие.
+      for (const staleTabId of openable.staleTabIds) tabStore.getState().closeTab(staleTabId);
     };
     void open().catch((error) => {
       // Bug 原因：首连等待期间连点任务，被替代的旧点击会抛 navigation-cancelled，或与新点击共享
