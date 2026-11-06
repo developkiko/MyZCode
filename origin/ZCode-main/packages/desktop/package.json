@@ -1,8 +1,8 @@
 {
   "name": "@zcode/desktop",
   "private": true,
-  "description": "ZCode Desktop App",
-  "author": "ZCode",
+  "description": "MyZCode Desktop App",
+  "author": "MyZCode",
   "type": "module",
   "main": "out/main/index.js",
   "imports": {

@@ -1961,7 +1961,7 @@ const ruRU: Record<string, string> = {
   "titleBar.menu.view.actualSize": "Фактический размер",
   "titleBar.menu.view.zoomIn": "Увеличить",
   "titleBar.menu.view.zoomOut": "Уменьшить",
-  "titleBar.menu.help.about": "О ZCode",
+  "titleBar.menu.help.about": "О MyZCode",
   "titleBar.menu.help.checkForUpdates": "Проверить обновления",
   "titleBar.menu.help.feedback": "Отзывы",
   "sidebar.menu.community": "Сообщество",

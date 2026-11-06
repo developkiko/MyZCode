@@ -2,10 +2,10 @@
 !include FileFunc.nsh
 
 !ifndef ZCODE_INSTALLER_DEFAULT_LOG_PATH
-  !define ZCODE_INSTALLER_DEFAULT_LOG_PATH "$TEMP\ZCode-installer.log"
+  !define ZCODE_INSTALLER_DEFAULT_LOG_PATH "$TEMP\MyZCode-installer.log"
 !endif
 !ifndef ZCODE_INSTALLER_ELEVATED_LOG_PATH
-  !define ZCODE_INSTALLER_ELEVATED_LOG_PATH "$WINDIR\Logs\ZCode-installer.log"
+  !define ZCODE_INSTALLER_ELEVATED_LOG_PATH "$WINDIR\Logs\MyZCode-installer.log"
 !endif
 !ifndef ZCODE_INSTALLER_IS_ELEVATED_INNER
   ; 修复原因：来源只在测试夹具模拟内层，正式默认恒假会让提权进程继续使用调用方 /LOG。
@@ -19,7 +19,7 @@
 !endif
 
 !ifndef ZCODE_UNINSTALLER_LOG_PATH
-  !define ZCODE_UNINSTALLER_LOG_PATH "$TEMP\ZCode-uninstaller.log"
+  !define ZCODE_UNINSTALLER_LOG_PATH "$TEMP\MyZCode-uninstaller.log"
 !endif
 !ifndef ZCODE_UNINSTALLER_FUNCTION_PREFIX
   !define ZCODE_UNINSTALLER_FUNCTION_PREFIX "un."
@@ -30,7 +30,7 @@
 
   ; 卸载器只在更新时删除旧文件；单独记录清理阶段，避免外层把权限/空间错误误报成应用仍在运行。
   !macro ZCodeReportUninstallerStage MESSAGE
-    DetailPrint "ZCode: ${MESSAGE}"
+    DetailPrint "MyZCode: ${MESSAGE}"
     Push "${MESSAGE}"
     Call ${ZCODE_UNINSTALLER_FUNCTION_PREFIX}ZCodeWriteUninstallerLog
   !macroend
@@ -148,7 +148,7 @@
   ; 详情面板和文件日志共用同一条阶段事件，避免静默安装丢失关键上下文。
   !macro ZCodeReportInstallerStage MESSAGE
     SetDetailsPrint listonly
-    DetailPrint "ZCode: ${MESSAGE}"
+    DetailPrint "MyZCode: ${MESSAGE}"
     Push "${MESSAGE}"
     Call ZCodeWriteInstallerLog
   !macroend
@@ -218,7 +218,7 @@
       IfErrors zcodeShowUninstallerDetailsClose
       StrCmp $R1 "" zcodeShowUninstallerDetailsRead
       SetDetailsPrint listonly
-      DetailPrint "ZCode: cleanup-log $R1"
+      DetailPrint "MyZCode: cleanup-log $R1"
       Goto zcodeShowUninstallerDetailsRead
     zcodeShowUninstallerDetailsClose:
       FileClose $R0
@@ -296,7 +296,7 @@
       ; 修复原因：静默自动更新无人值守，未设置 /SD 的模态框会一直等待用户点击，
       ; 使明确的退出码无法返回 electron-updater。静默时自动采用 IDOK，交互时仍显示提示。
       SetDetailsPrint listonly
-      DetailPrint "ZCode: cleanup-failed exit-code=$R0"
+      DetailPrint "MyZCode: cleanup-failed exit-code=$R0"
       Call ZCodeShowUninstallerCleanupDetails
       MessageBox MB_OK|MB_ICONSTOP "旧版本清理失败（错误码 $R0）。可能是文件被占用、权限不足或磁盘空间不足。详细日志：${ZCODE_UNINSTALLER_LOG_PATH}" /SD IDOK
       SetErrorLevel 2
@@ -416,20 +416,25 @@
   !ifndef BUILD_UNINSTALLER
     !insertmacro ZCodeReportInstallerStage "install-finalization-started"
   !endif
-  ${if} ${isUpdated}
-  ${orIf} $keepShortcuts == "true"
-    !ifndef DO_NOT_CREATE_START_MENU_SHORTCUT
-      !insertmacro ZCodeRepairShortcutIfNeeded "$newStartMenuLink" zcodeStartMenuShortcutRepair
-    !endif
+  ; 修复原因：历史版本可能留下指向已移动/已删除 exe 的 .lnk。addDesktopLink 在
+  ; «同名 .lnk 已存在» 时会保留旧文件，不重写目标；这里统一校验并修复，避免安装完
+  ; 桌面上是坏快捷方式。宏内部先判断存在性，用户主动删除的快捷方式不会被重建。
+  !ifndef DO_NOT_CREATE_START_MENU_SHORTCUT
+    !insertmacro ZCodeRepairShortcutIfNeeded "$newStartMenuLink" zcodeStartMenuShortcutRepair
+  !endif
 
-    !ifndef DO_NOT_CREATE_DESKTOP_SHORTCUT
-      !insertmacro ZCodeRepairShortcutIfNeeded "$newDesktopLink" zcodeDesktopShortcutRepair
-    !endif
-  ${endIf}
+  !ifndef DO_NOT_CREATE_DESKTOP_SHORTCUT
+    !insertmacro ZCodeRepairShortcutIfNeeded "$newDesktopLink" zcodeDesktopShortcutRepair
+  !endif
 
-  ; 修复原因：手动覆盖没有 --updated，继承旧快捷方式时仍需检查目标；首次安装没有旧项，
-  ; 不应额外启动 PowerShell。用户已删除的快捷方式也不会重建。
+  ; MyZCode: не оставляем uninstallerIcon.ico отдельным файлом рядом с приложением.
+  ; Иконка удалятора уже вшита в сам uninstaller (MUI_UNICON), а «Приложения» Windows
+  ; берут DisplayIcon; переключаем его на основной exe.
+  Delete "$INSTDIR\uninstallerIcon.ico"
+  WriteRegStr SHELL_CONTEXT "${UNINSTALL_REGISTRY_KEY}" "DisplayIcon" "$INSTDIR\${APP_EXECUTABLE_FILENAME},0"
+
   ; assisted installer 完成页始终直接运行本次安装落盘的 exe。
+  ; 快捷方式目标已在上面统一校验；用户主动删除的项不会被这里重建。
   StrCpy $launchLink "$appExe"
   !ifndef BUILD_UNINSTALLER
     !insertmacro ZCodeReportInstallerStage "install-completed"
@@ -526,28 +531,28 @@
     zcodeInstallDirDataBlockFound:
       IfSilent zcodeInstallDirDataBlockSilent
 
-      !insertmacro MUI_HEADER_TEXT "需要修改安装目录" "当前安装目录或其子目录包含 ZCode 数据目录"
+      !insertmacro MUI_HEADER_TEXT "Измените папку установки" "Выбранная папка или её подпапки содержат данные ZCode (.zcode)"
       nsDialogs::Create 1018
       Pop $0
       StrCmp $0 error zcodeInstallDirDataBlockDialogFailed 0
 
-      ${NSD_CreateLabel} 0u 0u 300u 44u "检测到该安装目录或其子目录中存在 .zcode 数据目录：$\r$\n$R2"
+      ${NSD_CreateLabel} 0u 0u 300u 44u "В выбранной папке или её подпапках найден каталог данных .zcode:$\r$\n$R2"
       Pop $1
-      ${NSD_CreateLabel} 0u 54u 300u 70u "为避免历史会话和配置被安装器清理，请返回上一步选择其他安装目录。$\r$\n$\r$\n当前目录不能继续安装。"
+      ${NSD_CreateLabel} 0u 54u 300u 70u "Чтобы установщик не удалил историю чатов и настройки, вернитесь назад и выберите другую папку.$\r$\n$\r$\nУстановка в текущую папку невозможна."
       Pop $1
 
       GetDlgItem $1 $HWNDPARENT 1
       EnableWindow $1 0
       GetDlgItem $1 $HWNDPARENT 3
       EnableWindow $1 1
-      SendMessage $1 ${WM_SETTEXT} 0 "STR:重选目录"
+      SendMessage $1 ${WM_SETTEXT} 0 "STR:Другая папка"
       Call ZCodeResizeInstallDirBackButton
 
       nsDialogs::Show
       Return
 
     zcodeInstallDirDataBlockDialogFailed:
-      MessageBox MB_OK|MB_ICONSTOP "检测到安装目录或其子目录中存在 .zcode 数据目录，安装已停止。请重新运行安装器并选择其他安装目录。"
+      MessageBox MB_OK|MB_ICONSTOP "В папке установки или её подпапках найден каталог данных .zcode. Установка остановлена. Запустите установщик снова и выберите другую папку."
       SetErrorLevel 1
       Quit
 

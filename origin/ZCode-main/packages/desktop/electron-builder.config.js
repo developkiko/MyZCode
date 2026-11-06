@@ -595,10 +595,10 @@ export default {
   extraMetadata: {
     version: buildMetadata.appVersion,
     zcodeProductFlavor: desktopProductIdentity.flavor,
-    homepage: "https://zcode.z.ai",
+    homepage: "https://github.com/developkiko/MyZCode",
     author: {
-      name: "ZCode",
-      email: "dev@zcode.z.ai",
+      name: "MyZCode",
+      email: "developkiko@users.noreply.github.com",
     },
   },
   // macOS 签名阶段会对 Electron Framework 下每个语言包逐个 codesign。
@@ -926,7 +926,7 @@ export default {
     // 与 /usr/share/icons/hicolor/*/apps/zcode.png 保持一致。
     executableName: desktopProductIdentity.linuxExecutableName,
     category: "Development",
-    maintainer: "ZCode <dev@zcode.z.ai>",
+    maintainer: "MyZCode <developkiko@users.noreply.github.com>",
   },
   deb: {
     // 生产版与 Preview 必须是两个 dpkg package；只改可执行名仍会让安装器把另一版本当成升级替换。
@@ -979,6 +979,17 @@ export default {
     installerIcon: "build/icon_installer.ico",
     uninstallerIcon: "build/icon_installer.ico",
     installerHeaderIcon: "build/icon_installer.ico",
+    // MyZCode: своя боковая панель/шапка вместо стандартной nsis3-metro.bmp.
+    installerSidebar: "build/installerSidebar.bmp",
+    uninstallerSidebar: "build/installerSidebar.bmp",
+    installerHeader: "build/installerHeader.bmp",
+    shortcutName: desktopProductIdentity.productName,
+    // MyZCode: ярлык на рабочем столе создаётся всегда. Иначе NSIS при совпадении имени
+    // считает существующий .lnk «сохранённым пользователем» и не пересоздаёт его после
+    // переустановки, оставляя битый ярлык от предыдущей/чужой установки.
+    createDesktopShortcut: "always",
+    // Без лишних языков: иначе NSIS может выбрать китайский фолбэк.
+    installerLanguages: ["ru_RU", "en_US"],
   },
   detectUpdateChannel: false,
   publish: {
