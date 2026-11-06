@@ -57,7 +57,7 @@ export function buildWindowsOpenFolderRegistryOperations(options: {
   ]);
 }
 
-function runRegAdd(args: readonly string[]): Promise<void> {
+function runReg(args: readonly string[]): Promise<void> {
   return new Promise((resolvePromise, reject) => {
     const child = spawn("reg.exe", [...args], {
       stdio: "ignore",
@@ -74,6 +74,22 @@ function runRegAdd(args: readonly string[]): Promise<void> {
       reject(new Error(`reg.exe exited with code ${code ?? "unknown"}`));
     });
   });
+}
+
+export async function removeWindowsOpenFolderContextMenu(options: {
+  platform: NodeJS.Platform;
+}): Promise<void> {
+  if (options.platform !== "win32") {
+    return;
+  }
+
+  await Promise.all(
+    [DIRECTORY_MENU_KEY, DRIVE_MENU_KEY].map((menuKey) =>
+      runReg(["delete", menuKey, "/f"]).catch(() => {
+        // Ключа может не быть — это нормально.
+      }),
+    ),
+  );
 }
 
 export async function installWindowsOpenFolderContextMenu(options: {
@@ -99,7 +115,7 @@ export async function installWindowsOpenFolderContextMenu(options: {
   });
 
   try {
-    await Promise.all(operations.map((operation) => runRegAdd(operation.args)));
+    await Promise.all(operations.map((operation) => runReg(operation.args)));
 
     options.logger.info("[open-folder] Windows Explorer 右键菜单已安装或更新", {
       executablePath: options.executablePath,
