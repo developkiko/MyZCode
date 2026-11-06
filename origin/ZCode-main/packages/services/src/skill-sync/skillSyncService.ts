@@ -1,6 +1,5 @@
 import { existsSync } from "node:fs";
 import { readFile, readdir, realpath, stat } from "node:fs/promises";
-import { homedir } from "node:os";
 import { basename, dirname, join, relative } from "node:path";
 import { parse as parseYaml } from "yaml";
 import { SKILL_DATA_SYNC_MAX_ITEM_BYTES } from "@zcode/shared";
@@ -11,6 +10,7 @@ import {
   walkSkillMarkdownPaths,
 } from "../skills/skillDiscoveryWalk.js";
 import { createSkillDataSyncMethods } from "../data-sync/node.js";
+import { resolveUserConfigHomeDir } from "#src/paths.js";
 
 const SKILL_FILE_NAME = "SKILL.md";
 const DEFAULT_MAX_ARCHIVE_BYTES = SKILL_DATA_SYNC_MAX_ITEM_BYTES;
@@ -30,7 +30,7 @@ export function createSkillSyncService(options?: { maxArchiveBytes?: number }): 
 }
 
 export function resolveUserHomeDir(): string {
-  return process.env.HOME?.trim() || process.env.USERPROFILE?.trim() || homedir();
+  return resolveUserConfigHomeDir();
 }
 
 export function getUserZcodeSkillRoot(): string {

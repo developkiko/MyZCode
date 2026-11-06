@@ -4,7 +4,6 @@
 
 import { readFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
-import { homedir } from "node:os";
 import type {
   CliMcpSource,
   LoadCliMcpFromUserDirectoryRequest,
@@ -16,6 +15,7 @@ import type {
   SaveCliMcpToUserDirectoryRequest,
 } from "@zcode/shared";
 import { readJsonObjectFileForUpdate, updateJsonObjectFile } from "@zcode/services/node";
+import { resolveUserConfigHomeDir } from "@zcode/services/node";
 import type { McpConfigKeyName } from "./types.js";
 import { isRecord } from "./utils.js";
 import { migrateLegacyCommonMcp } from "./legacy.js";
@@ -62,8 +62,7 @@ const AGENTS_MCP_DESCRIPTOR: DirectoryMcpDescriptor = {
 };
 
 function resolveUserHomeDir(): string {
-  const envHome = process.env.HOME?.trim() || process.env.USERPROFILE?.trim();
-  return envHome && envHome.length > 0 ? envHome : homedir();
+  return resolveUserConfigHomeDir();
 }
 
 const DIRECTORY_MCP_DESCRIPTORS: readonly DirectoryMcpDescriptor[] = [

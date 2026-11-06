@@ -2,8 +2,8 @@ import type { OutputStyle, OutputStyleConfig } from "@zcode/shared";
 import type { IOutputStyleService } from "./outputStyle.js";
 import { access, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
-import { homedir } from "node:os";
 import { join } from "node:path";
+import { resolveUserConfigHomeDir } from "#src/paths.js";
 
 const DEFAULT_OUTPUT_STYLE = "default";
 const SETTINGS_FILE = "settings.json";
@@ -39,8 +39,7 @@ const BUILT_IN_STYLES: OutputStyle[] = [
 ];
 
 function resolveUserHomeDir(): string {
-  const envHome = process.env.HOME?.trim() || process.env.USERPROFILE?.trim();
-  return envHome && envHome.length > 0 ? envHome : homedir();
+  return resolveUserConfigHomeDir();
 }
 
 function getUserOutputStylesDir(): string {

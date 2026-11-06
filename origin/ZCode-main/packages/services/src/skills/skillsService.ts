@@ -2,7 +2,6 @@
 import { access, appendFile, cp, mkdir, realpath, rm, readFile, readdir } from "node:fs/promises";
 import { existsSync, type Dirent } from "node:fs";
 import { createHash } from "node:crypto";
-import { homedir } from "node:os";
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { parse as parseYaml } from "yaml";
 import type {
@@ -20,6 +19,7 @@ import type { ISkillsService } from "./skills.js";
 import { SKILL_FILE_NAME, walkSkillMarkdownPaths } from "./skillDiscoveryWalk.js";
 import { readInstalledPluginRoots } from "#src/plugins/installedPluginRoots.js";
 import { updateJsonObjectFile } from "#src/fs/atomicFileUtils.js";
+import { resolveUserConfigHomeDir } from "#src/paths.js";
 
 interface DiscoverResult {
   skills: SkillSummary[];
@@ -38,9 +38,16 @@ interface ParsedFrontmatter {
 }
 
 const SKILL_META_FILE_NAME = "_meta.json";
-const SKILL_SETTINGS_DIR = join(resolveUserHomeDir(), ".zcode", "v2");
-const SKILL_CLI_SETTINGS_DIR = join(resolveUserHomeDir(), ".zcode", "cli");
-const SKILL_CLI_CONFIG_FILE = join(SKILL_CLI_SETTINGS_DIR, "config.json");
+// dataBaseDir задаётся после загрузки модуля, поэтому пути нельзя фиксировать на верхнем уровне.
+function getSkillSettingsDir(): string {
+  return join(resolveUserHomeDir(), ".zcode", "v2");
+}
+function getSkillCliSettingsDir(): string {
+  return join(resolveUserHomeDir(), ".zcode", "cli");
+}
+function getSkillCliConfigFile(): string {
+  return join(getSkillCliSettingsDir(), "config.json");
+}
 const GIT_MARKER = ".git";
 const HOME_PREFIX = "~/";
 const ZCODE_OFFICIAL_PLUGIN_MARKETPLACE = "zcode-plugins-official";
@@ -52,8 +59,7 @@ const CODEX_PLUGIN_MANIFEST_PATH = join(".codex-plugin", "plugin.json");
 /** 对齐 apps/zcode-cli/packages/adapters/src/skills/index.ts:19 */
 const MAX_DESCRIPTION_LENGTH = 1024;
 function resolveUserHomeDir() {
-  const envHome = process.env.HOME?.trim() || process.env.USERPROFILE?.trim();
-  return envHome && envHome.length > 0 ? envHome : homedir();
+  return resolveUserConfigHomeDir();
 }
 
 interface SkillsServiceOptions {
@@ -271,9 +277,9 @@ async function appendSkillsAuditLog(params: {
   workspaceIdentity?: string;
   activatedSkillNames: string[];
 }): Promise<void> {
-  await mkdir(SKILL_SETTINGS_DIR, { recursive: true });
+  await mkdir(getSkillSettingsDir(), { recursive: true });
   await appendFile(
-    join(SKILL_SETTINGS_DIR, "skills-audit.log"),
+    join(getSkillSettingsDir(), "skills-audit.log"),
     `${JSON.stringify({
       createdAt: Date.now(),
       workspacePath: params.workspacePath,
@@ -523,7 +529,7 @@ function normalizeSkillConfigPath(path: string): string {
 // 只用于列表展示：config.json 损坏时按空配置展示技能，不影响浏览。写入走 writeSkillEnabledMap。
 async function readCliConfigFile(): Promise<Record<string, unknown>> {
   try {
-    const raw = await readFile(SKILL_CLI_CONFIG_FILE, "utf-8");
+    const raw = await readFile(getSkillCliConfigFile(), "utf-8");
     const parsed = JSON.parse(raw) as unknown;
     return isObjectRecord(parsed) ? parsed : {};
   } catch {
@@ -556,7 +562,7 @@ async function readSkillEnabledMap(): Promise<Record<string, boolean>> {
  * 修法：改用 updateJsonObjectFile——文件损坏时报错不写，写前重读，只改 skills 字段，原子替换。
  */
 async function writeSkillEnabledMap(next: Record<string, boolean>): Promise<void> {
-  await updateJsonObjectFile(SKILL_CLI_CONFIG_FILE, (current) => {
+  await updateJsonObjectFile(getSkillCliConfigFile(), (current) => {
     const config = { ...current };
     const skillsConfig = isObjectRecord(config.skills) ? { ...config.skills } : {};
     for (const [path, enable] of Object.entries(next).sort(([left], [right]) =>

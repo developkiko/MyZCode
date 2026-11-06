@@ -209,7 +209,8 @@ export function createDesktopPlatform(options: {
       window.zcode.getApplicationIcon?.(bundleId) ?? Promise.resolve(null),
     openInEditor: (editorId, path, editorOptions) =>
       window.zcode.openInEditor(editorId, path, editorOptions),
-    executeDesktopCommand: (command) => window.zcode.executeDesktopCommand(command),
+    executeDesktopCommand: (command, payload) =>
+      window.zcode.executeDesktopCommand(command, payload),
     setApplicationLocale: (locale) => window.zcode.setApplicationLocale(locale),
     getSystemLocale: () =>
       window.zcode.getSystemLocale?.() ??

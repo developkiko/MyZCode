@@ -1,5 +1,4 @@
 import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
-import { homedir } from "node:os";
 import { basename, dirname, join, posix, win32 } from "node:path";
 import type {
   LoadCliMcpFromUserDirectoryRequest,
@@ -15,6 +14,7 @@ import type {
 import type { IMcpSyncService } from "./mcpSync.js";
 import { createMcpDataSyncMethods } from "../data-sync/node.js";
 import { createServiceLogger } from "../logger/serviceLogger.js";
+import { resolveUserConfigHomeDir } from "#src/paths.js";
 
 const logger = createServiceLogger("mcp-sync");
 
@@ -101,7 +101,7 @@ export function createMcpSyncService(
 }
 
 export function resolveUserHomeDir(): string {
-  return process.env.HOME?.trim() || process.env.USERPROFILE?.trim() || homedir();
+  return resolveUserConfigHomeDir();
 }
 
 function buildDirectoryConfigPath(

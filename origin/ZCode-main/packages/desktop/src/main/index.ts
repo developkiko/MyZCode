@@ -589,7 +589,7 @@ async function runBrowserCommandOnView(params: {
 let currentDesktopZoomLevel = 0;
 let currentDesktopWindowSize: DesktopWindowSize | undefined;
 const preloadPath = join(import.meta.dirname, "../preload/index.cjs");
-const settingsFile = join(homedir(), ".zcode", "v2", "setting.json");
+const settingsFile = join(getAppConfigDir(), "setting.json");
 let activeAppShutdownPolicy = resolveAppShutdownPolicy("normal", process.platform);
 let activeAppShutdownKind: AppShutdownKind | null = null;
 const WINDOWS_AGENT_FORCE_KILL_TIMEOUT_MS = 2_000;
@@ -1585,10 +1585,12 @@ function confirmAppQuit(originWindow?: BrowserWindow | null) {
 async function executeDesktopCommandForApp(
   command: Parameters<typeof executeDesktopCommand>[0]["command"],
   senderWindow?: BrowserWindow | null,
+  payload?: unknown,
 ) {
   return executeDesktopCommand({
     fetchHelpConfig: readHelpConfig,
     command,
+    payload,
     senderWindow,
     logger,
     updateZCodeStdioTapDevMenuState,
@@ -2177,8 +2179,10 @@ app.whenReady().then(async () => {
     // Свежая установка: setting.json ещё не существует, а schema-дефолт locale=zh-CN —
     // не выбор пользователя. Тогда язык берём из системы (fallback ниже на строке с
     // !loadedBootstrapLocale), чтобы нативное меню/трей не стартовали с китайского.
+    // MyZCode: настроечный файл живёт в изолированном dataBaseDir, а не в ~/.zcode
+    // оригинала — иначе свежий MyZCode принимал бы чужие настройки за пользовательские.
     const bootstrapSettingsHome =
-      process.env.ZCODE_DESKTOP_HOME_DIR?.trim() || app.getPath("home");
+      process.env.ZCODE_DESKTOP_HOME_DIR?.trim() || getDataBaseDir();
     const persistedSettingsFileExists = existsSync(
       join(bootstrapSettingsHome, ".zcode", "v2", "setting.json"),
     );

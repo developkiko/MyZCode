@@ -118,6 +118,7 @@ export {
   getZCodeDataRootDir,
   getConversationWorkspaceDir,
   getAppConfigDir,
+  resolveUserConfigHomeDir,
   getExportLogStageDir,
   getExportLogDir,
   getFeedbackRootDir,

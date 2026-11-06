@@ -1287,8 +1287,10 @@ export interface IPlatformService {
 
   /** 执行桌面窗口级命令（标题栏菜单、缩放、窗口控制等）。
    *  返回值直通 main 进程 handler 的 return（大多数命令无返回值；
-   *  GetCuaOsSupport 返回 CuaOsSupport），因此放宽为 unknown。 */
-  executeDesktopCommand(command: DesktopCommandId): Promise<unknown>;
+   *  GetCuaOsSupport 返回 CuaOsSupport），因此放宽为 unknown。
+   *  payload 仅由命令自身解释（如 ImportFromOriginalZCode 的分类选择），
+   *  其余命令忽略。 */
+  executeDesktopCommand(command: DesktopCommandId, payload?: unknown): Promise<unknown>;
 
   /** 同步应用菜单语言，驱动 main 进程重建原生菜单 */
   setApplicationLocale(locale: Locale): Promise<void>;

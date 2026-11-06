@@ -481,6 +481,8 @@ async function resolveCurrentZCodeEndpointOrigin(settingService: {
 
 export async function executeDesktopCommand(options: {
   command: DesktopCommandId;
+  /** 命令专属参数（目前仅 ImportFromOriginalZCode 使用）。 */
+  payload?: unknown;
   fetchHelpConfig?: () => Promise<unknown>;
   senderWindow?: BrowserWindow | null;
   logger: {
@@ -695,6 +697,6 @@ export async function executeDesktopCommand(options: {
     case DesktopCommandIds.GetCuaOsSupport:
       return resolveCuaOsSupport();
     case DesktopCommandIds.ImportFromOriginalZCode:
-      return importFromOriginalZCode();
+      return importFromOriginalZCode(options.payload);
   }
 }

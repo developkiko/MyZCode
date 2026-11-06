@@ -948,8 +948,8 @@ contextBridge.exposeInMainWorld("zcode", {
       options,
     }),
   /** 执行桌面窗口级命令 */
-  executeDesktopCommand: (command: DesktopCommandId) =>
-    ipcRenderer.invoke(PlatformChannels.ExecuteDesktopCommand, command),
+  executeDesktopCommand: (command: DesktopCommandId, payload?: unknown) =>
+    ipcRenderer.invoke(PlatformChannels.ExecuteDesktopCommand, command, payload),
   /** 同步应用菜单语言 */
   setApplicationLocale: (locale: Locale) =>
     ipcRenderer.invoke(PlatformChannels.SetApplicationLocale, locale),

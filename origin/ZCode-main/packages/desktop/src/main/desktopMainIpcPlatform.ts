@@ -3,7 +3,6 @@ import { decorateRequestSecurityLogArgs } from "./request-security-edition/index
 import { BrowserWindow, dialog, ipcMain, nativeTheme } from "electron";
 import { readZCodeStdioTapDevState } from "@zcode/services/node";
 import {
-  DesktopCommandIds,
   appSettingsPatchSchema,
   formatZodError,
   localeSchema,
@@ -83,6 +82,7 @@ export function registerPlatformIpcHandlers(options: {
   executeDesktopCommand: (
     command: DesktopCommandId,
     senderWindow?: BrowserWindow | null,
+    payload?: unknown,
   ) => Promise<unknown>;
   acknowledgePostUpdateReleaseNotes: (version: string) => Promise<void>;
   syncActiveTaskSession: (windowId: number, sessionId: string | null) => void;

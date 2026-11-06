@@ -12,10 +12,9 @@ import {
   realpath,
   writeFile,
 } from "node:fs/promises";
-import { homedir } from "node:os";
 import { basename, isAbsolute, join, relative, sep } from "node:path";
 import { readProjectMemoryFileFromStableHandle } from "#src/memory/projectMemoryStableRead.js";
-import { getZCodeDataRootDir } from "#src/paths.js";
+import { getZCodeDataRootDir, resolveUserConfigHomeDir } from "#src/paths.js";
 
 const PROJECT_MEMORY_INDEX_FILE_NAME = "MEMORY.md";
 const PROJECT_MEMORY_DIRECTORY_NAME = "memory";
@@ -134,8 +133,7 @@ function compareProjectMemoryFiles(
 }
 
 function resolveUserHomeDir(): string {
-  const envHome = process.env.HOME?.trim() || process.env.USERPROFILE?.trim();
-  return envHome && envHome.length > 0 ? envHome : homedir();
+  return resolveUserConfigHomeDir();
 }
 
 function getUserMemoryDir(): string {

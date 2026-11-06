@@ -1,6 +1,5 @@
 import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
-import { homedir } from "node:os";
 import { isAbsolute, join, resolve } from "node:path";
 import type {
   Hook,
@@ -22,6 +21,7 @@ import { parseWorkspaceHookTrustStoreContent } from "@zcode/shared/workspace-hoo
 import { createServiceLogger, type ServiceLogger } from "#src/logger/serviceLogger.js";
 import type { IHooksService } from "./hooks.js";
 import { updateJsonObjectFile } from "#src/fs/atomicFileUtils.js";
+import { resolveUserConfigHomeDir } from "#src/paths.js";
 import {
   fromLegacyHooksConfig,
   fromProjectSnapshot,
@@ -49,8 +49,7 @@ interface ZCodeConfigFile {
 }
 
 function resolveUserHomeDir(): string {
-  const envHome = process.env.HOME?.trim() || process.env.USERPROFILE?.trim();
-  return envHome && envHome.length > 0 ? envHome : homedir();
+  return resolveUserConfigHomeDir();
 }
 
 function getRootDir(source: SettingsDirectorySource, workspacePath?: string): string {

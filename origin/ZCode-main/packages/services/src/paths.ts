@@ -58,15 +58,24 @@ export function getAppConfigDir(): string {
 }
 
 /**
+ * MyZCode: домашняя папка для пользовательских конфигов agent-слоя
+ * (~/.zcode, ~/.agents, ~/.claude). Это data base dir, а не реальный HOME,
+ * иначе MyZCode и оригинальный ZCode читают и пишут одни и те же файлы.
+ * Agent-подпроцесс получает HOME=dataBaseDir (providerRuntimeResolver),
+ * поэтому CLI видит те же пути.
+ */
+export function resolveUserConfigHomeDir(): string {
+  return getDataBaseDir();
+}
+
+/**
  * Agent 侧用户级默认指令（个性化）文件的 home 解析。
- * 必须与 CLI adapter（apps/zcode-cli/packages/adapters/src/context/index.ts 的
- * resolveUserHomeDir）保持完全一致：只认 HOME/USERPROFILE。不能改用
- * ZCODE_DATA_BASE_DIR（CLI 读该文件时忽略它）或 ZCODE_DESKTOP_HOME_DIR
- * （agent 子进程不认），否则 App 写的文件和 Agent 读的文件会分叉。
+ * Должен совпадать с CLI adapter (apps/zcode-cli/packages/adapters/src/context/index.ts),
+ * который получает HOME=dataBaseDir и читает `{home}/.zcode/AGENTS.md`.
  */
 export function resolveAgentUserInstructionsHomeDir(env: NodeJS.ProcessEnv = process.env): string {
-  const envHome = env.HOME?.trim() || env.USERPROFILE?.trim();
-  return envHome && envHome.length > 0 ? envHome : homedir();
+  const dataBaseDir = env.ZCODE_DATA_BASE_DIR?.trim();
+  return dataBaseDir && dataBaseDir.length > 0 ? dataBaseDir : getDataBaseDir();
 }
 
 /** `{home}/.zcode/AGENTS.md`：用户自定义指令（个性化）的唯一事实源文件。 */
