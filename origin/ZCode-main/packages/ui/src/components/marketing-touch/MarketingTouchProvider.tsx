@@ -8,7 +8,6 @@ import { createContext, useContext, useEffect, useCallback, useState, useRef } f
 import type { ReactNode } from "react";
 import { useStore } from "zustand";
 import { useCodingPlanUpgradeDialog } from "@/settings/CodingPlanUpgradeDialogProvider.js";
-import { useOpenRewards } from "@/rewards/RewardsProvider.js";
 import { useWorkspaceSidebarFooterUsageSummaryState } from "@/WorkspaceSidebarFooterUsageSummary.js";
 import { useTabStore, useTabStoreApi } from "@/store/TabStoreProvider.js";
 import { setPendingSettingsSectionIntent } from "@/lib/settingsNavigation.js";
@@ -76,9 +75,6 @@ export function MarketingTouchProvider({
   const user = useZCodeStore((state) => state.user);
   const restoring = useZCodeStore((state) => state.isRestoringOAuthSession);
   const requestLogin = useZCodeStore((state) => state.requestLoginEntry);
-  const openRewards = useOpenRewards();
-  const openRewardsRef = useRef(openRewards);
-  openRewardsRef.current = openRewards;
   const { intl, locale } = useZCodeIntl();
   const startEntitlement = useStartPlanEntitlement(
     BUILTIN_MODEL_PROVIDER_IDS.bigmodelStartPlan,
@@ -159,9 +155,8 @@ export function MarketingTouchProvider({
               if (!controller.store.getState().dialog)
                 toast(intl.formatMessage({ id: "manualClaimPlan.claim.share.copyTextSucceeded" }));
             } else if (action.args.page === "rewards") {
-              // 只确认窗口级 Provider 接收意图；登录续接不依赖会在账号变化时销毁的营销实例。
-              if (!openRewardsRef.current) throw new Error("marketing_navigation_unavailable");
-              await openRewardsRef.current();
+              // MyZCode: страница бонусов удалена.
+              throw new Error("marketing_navigation_unavailable");
             } else {
               const opening = new AbortController();
               const abortOpening = () => opening.abort();
