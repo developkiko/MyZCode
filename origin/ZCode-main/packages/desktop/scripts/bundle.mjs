@@ -215,6 +215,11 @@ export function createBundleProcessEnvs({ os, arch, electronMirror, electronBuil
   const commonEnv = {
     ZCODE_TARGET_OS: os,
     ZCODE_TARGET_ARCH: arch,
+    // MyZCode: автообновление — штатная часть форка. Без этой переменной Vite
+    // вырезает updater из production-сборки, и приложение пишет
+    // "[auto-update] disabled for this desktop product flavor".
+    // Явный ZCODE_AUTO_UPDATE=0 по-прежнему позволяет собрать пакет без него.
+    ZCODE_AUTO_UPDATE: process.env.ZCODE_AUTO_UPDATE ?? "1",
     ...createElectronRuntimeMirrorEnv(electronMirror),
   };
   const clearedElectronBuilderEnv = createElectronBuilderBinariesMirrorEnv("");
