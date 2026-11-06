@@ -1699,6 +1699,12 @@ export async function initAutoUpdater(options: InitAutoUpdaterOptions = {}): Pro
   // пропускается, если в app-update.yml нет publisherName.
   autoUpdater.allowPrerelease = false;
   autoUpdater.channel = null;
+  // MyZCode: дифференциальная загрузка NSIS в форке нестабильна — первая попытка
+  // уходит в "cancelled" без смены состояния в UI (кнопка остаётся заблокированной,
+  // прогресс не показывается), повторная собирает файл с sha512 mismatch и всё равно
+  // падает в полное скачивание, скачав при этом больше, чем полный файл.
+  // Отключаем: обновление = один полный файл установщика.
+  autoUpdater.disableDifferentialDownload = true;
   applyUpdateProvider(options);
 
   const triggerCheckForUpdates = (reason: string) => {
