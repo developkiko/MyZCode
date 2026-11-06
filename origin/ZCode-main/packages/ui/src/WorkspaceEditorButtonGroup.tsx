@@ -41,6 +41,11 @@ export function WorkspaceEditorButtonGroup({
   const [selectedEditorId, setSelectedEditorId] = useState<string | null>(() =>
     readLastSelectedEditorId(),
   );
+  // Системное имя «资源管理器» приходит из main без локализации; показываем его по id.
+  const editorLabel = (editor: EditorInfo) =>
+    editor.id === "explorer"
+      ? intl.formatMessage({ id: "appHeader.editor.explorer" })
+      : editor.name;
 
   useEffect(() => {
     let disposed = false;
@@ -139,16 +144,19 @@ export function WorkspaceEditorButtonGroup({
         onClick={() => handleOpenEditor(selectedEditor)}
         aria-label={intl.formatMessage(
           { id: "appHeader.openInEditor" },
-          { editor: selectedEditor.name },
+          { editor: editorLabel(selectedEditor) },
         )}
         title={
           disabledReason ??
-          intl.formatMessage({ id: "appHeader.openInEditor" }, { editor: selectedEditor.name })
+          intl.formatMessage(
+            { id: "appHeader.openInEditor" },
+            { editor: editorLabel(selectedEditor) },
+          )
         }
       >
         <img
           src={selectedEditor.iconDataUrl}
-          alt={selectedEditor.name}
+          alt={editorLabel(selectedEditor)}
           className={editorIconClassName}
         />
       </Button>
@@ -184,10 +192,10 @@ export function WorkspaceEditorButtonGroup({
               <DropdownMenuRadioItem key={editor.id} value={editor.id}>
                 <img
                   src={editor.iconDataUrl}
-                  alt={editor.name}
+                  alt={editorLabel(editor)}
                   className={editorMenuIconClassName}
                 />
-                {editor.name}
+                {editorLabel(editor)}
               </DropdownMenuRadioItem>
             ))}
           </DropdownMenuRadioGroup>

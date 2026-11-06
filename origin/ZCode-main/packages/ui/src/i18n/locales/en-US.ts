@@ -2222,6 +2222,7 @@ const enUS: Record<string, string> = {
   "chat.webElements.remove": "Remove web element context",
   "appHeader.openInFinder": "Open in Finder",
   "appHeader.openInFileExplorer": "Open in File Explorer",
+  "appHeader.editor.explorer": "File Explorer",
   "appHeader.openInFileManager": "Open in File Manager",
   "appHeader.openInFileManagerFailed": "Could not open in the system file manager",
   "appHeader.openInEditor": "Open in {editor}",

@@ -2051,6 +2051,7 @@ const zhCN: Record<string, string> = {
   "chat.webElements.remove": "移除网页元素上下文",
   "appHeader.openInFinder": "在 Finder 中打开",
   "appHeader.openInFileExplorer": "在资源管理器中打开",
+  "appHeader.editor.explorer": "资源管理器",
   "appHeader.openInFileManager": "在文件管理器中打开",
   "appHeader.openInFileManagerFailed": "无法在系统文件管理器中打开",
   "appHeader.openInEditor": "在 {editor} 中打开",
