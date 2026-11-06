@@ -96,6 +96,25 @@ const TEXT = {
       "invalid-shard": "Received log data could not be parsed or written.",
     } satisfies Record<MobileLogPullErrorCode, string>,
   },
+  "ru-RU": {
+    title: "Получить логи телефона",
+    done: (count: number) => `Экспортировано записей лога: ${count}.`,
+    truncated: "Логов больше лимита; сохранены только самые новые записи.",
+    partial: (count: number) => `Получение прервано; сохранено записей: ${count}.`,
+    path: "Файл",
+    realtime: "Папка логов realtime-выгрузки",
+    openFolder: "Показать в папке",
+    ok: "ОК",
+    errors: {
+      "not-paired": "Нет подключённого телефона. Сначала подключите телефон через удалённое управление.",
+      busy: "Получение логов телефона уже выполняется. Дождитесь его завершения.",
+      unsupported: "Мобильное приложение не поддерживает получение логов. Обновите приложение.",
+      timeout: "Телефон не ответил. Держите приложение на переднем плане и повторите попытку.",
+      disconnected: "Соединение с удалённым управлением прервано; получение логов остановлено.",
+      "mobile-error": "Телефон вернул ошибку.",
+      "invalid-shard": "Полученные данные лога не удалось разобрать или записать.",
+    } satisfies Record<MobileLogPullErrorCode, string>,
+  },
 } as const;
 
 function formatFileTimestamp(date: Date): string {

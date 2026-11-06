@@ -21,10 +21,12 @@ import {
   type UpdateStatePayload,
 } from "@zcode/shared";
 import { logger } from "./logger.js";
-import { verifyWindowsAuthenticodeSignature } from "../../scripts/powershell-command.mjs";
 import { ManifestUpdateProvider, getElectronReleasePlatform } from "./manifestUpdateProvider.js";
 
 export const CHECK_FOR_UPDATE_MENU_ID = "check-for-update";
+// MyZCode распространяется через свой репозиторий GitHub, а не через официальный feed ZCode.
+const MYZCODE_UPDATE_REPO_OWNER = "developkiko";
+const MYZCODE_UPDATE_REPO_NAME = "MyZCode";
 const AUTO_UPDATE_POLL_INTERVAL_MS = 15 * 60 * 1000;
 const AUTO_UPDATE_VISIBLE_POLL_INTERVAL_MS = 2 * 60 * 1000;
 const UPDATE_FEED_URL_ENV = "ZCODE_UPDATE_FEED_URL";
@@ -486,22 +488,8 @@ async function quitAndInstallUpdate(rejectUnavailable = false) {
   // 也不能让一次挂起的后台网络请求扣押用户已经选择的安装。
   quitAndInstallState = "preparing";
   logger.info("[auto-update] user requested quit and install");
-  if (process.platform === "win32" && app.isPackaged) {
-    try {
-      // 6.8.10 命中已下载缓存时跳过下载 hook；在退出服务前复查实际待安装文件。
-      // 读取既有 updater 的安装路径，避免另存一份路径导致 ready 与安装目标不同步。
-      const installerPath = (autoUpdater as unknown as { readonly installerPath: string | null })
-        .installerPath;
-      if (!installerPath) throw new Error("Windows update installer is missing");
-      const failure = await verifyWindowsAuthenticodeSignature(installerPath);
-      if (failure) throw new Error(failure);
-    } catch (error) {
-      quitAndInstallState = "idle";
-      handleAutoUpdateFailure(error, "Windows update signature verification failed");
-      if (rejectUnavailable) throw error;
-      return;
-    }
-  }
+  // MyZCode: сборки не подписаны сертификатом ZCode, поэтому проверку Authenticode
+  // оставляем на стандартный electron-updater (он пропускает её без publisherName).
   // macOS 上 quitAndInstall() 在关窗前不会先走 app.before-quit。
   // 如果仍然只靠 before-quit 去放行窗口 close，现有的“红绿灯关闭=隐藏窗口”逻辑会把退出拦住，
   // 表现成点击更新后界面消失但进程没退、安装流程也不再继续。
@@ -813,6 +801,13 @@ async function resolveUpdateReleaseChannel(
   }
 }
 
+function applyUpdateChannelToUpdater(channel: ElectronReleaseChannel): void {
+  // GitHub provider: preview = разрешить prerelease-релизы и брать самый свежий из них,
+  // stable = только полноценные релизы GitHub. Файл latest.yml общий для обоих каналов.
+  autoUpdater.allowPrerelease = channel === "preview";
+  autoUpdater.channel = null;
+}
+
 async function syncAutoUpdateCheckChannelFromSettings(
   checkId: number,
   settingService: SettingServiceLike | undefined,
@@ -828,15 +823,28 @@ async function syncAutoUpdateCheckChannelFromSettings(
       `[auto-update] ${reason}: check channel ${availableUpdateChannel} -> ${nextChannel}`,
     );
   }
-  // 服务端 manifest provider 会在 checkForUpdates 内部读取 preview 设置。
+  applyUpdateChannelToUpdater(nextChannel);
   // 如果 begin 阶段仍用默认 stable 作为 expected channel，冷启动 preview 结果会被误判为 stale。
   availableUpdateChannel = nextChannel;
   activeAutoUpdateCheckChannel = nextChannel;
 }
 
-function applyManifestUpdateProvider(options: InitAutoUpdaterOptions): void {
-  // 在更新器装配边界再次约束，避免内部调用绕过启动配置解析。
+function applyUpdateProvider(options: InitAutoUpdaterOptions): void {
+  // Dev-переопределение feed (--zcode-update-feed-url) остаётся на manifest-провайдере,
+  // чтобы можно было тестировать обновления локально. В остальных случаях — GitHub Releases MyZCode.
   const manifestUrl = app.isPackaged ? undefined : options.updateFeedSource?.url.trim();
+  if (!manifestUrl) {
+    autoUpdater.setFeedURL({
+      provider: "github",
+      owner: MYZCODE_UPDATE_REPO_OWNER,
+      repo: MYZCODE_UPDATE_REPO_NAME,
+      releaseType: "release",
+    });
+    logger.info(
+      `[auto-update] GitHub releases provider applied ${MYZCODE_UPDATE_REPO_OWNER}/${MYZCODE_UPDATE_REPO_NAME}`,
+    );
+    return;
+  }
   autoUpdater.setFeedURL({
     provider: "custom",
     updateProvider: ManifestUpdateProvider,
@@ -1564,8 +1572,9 @@ export function refreshAutoUpdaterReleaseChannel(
   }
 
   logger.info(
-    `[auto-update] ${reason}: refresh manifest channel ${currentChannel} -> ${nextChannel}`,
+    `[auto-update] ${reason}: refresh update channel ${currentChannel} -> ${nextChannel}`,
   );
+  applyUpdateChannelToUpdater(nextChannel);
   availableUpdateChannel = nextChannel;
   clearAvailableUpdateState();
   setAutoUpdaterMenuState({ kind: "checking", enabled: false });
@@ -1686,12 +1695,11 @@ export async function initAutoUpdater(options: InitAutoUpdaterOptions = {}): Pro
   // 由 before-quit 主动安装，避免目标已经升高后退出装上旧包。
   autoUpdater.autoInstallOnAppQuit = false;
   autoUpdater.logger = logger;
-  if (autoUpdater instanceof pkg.NsisUpdater) {
-    // 保留包内 publisherName 来激活 NSIS hook，但不把旧 DN 当作未来换证的准入条件。
-    autoUpdater.verifyUpdateCodeSignature = (_publisherNames, filePath) =>
-      verifyWindowsAuthenticodeSignature(filePath);
-  }
-  applyManifestUpdateProvider(options);
+  // MyZCode: подпись ZCode не наследуется; стандартная проверка electron-updater
+  // пропускается, если в app-update.yml нет publisherName.
+  autoUpdater.allowPrerelease = false;
+  autoUpdater.channel = null;
+  applyUpdateProvider(options);
 
   const triggerCheckForUpdates = (reason: string) => {
     if (quitAndInstallState !== "idle") return;
