@@ -3314,15 +3314,38 @@ const zhCN: Record<string, string> = {
   "settings.taskAutoArchiveDays.option.7": "7 天后归档",
   "settings.taskAutoArchiveDays.option.14": "14 天后归档",
   "settings.taskAutoArchiveDays.option.30": "30 天后归档",
-    "settings.importFromOriginalZCode": "从原版 ZCode 导入",
+  "settings.importFromOriginalZCode": "从原版 ZCode 导入",
   "settings.importFromOriginalZCodeDescription":
-    "将原版 ZCode 数据文件夹中的配置（设置、账号、机器人、服务商）复制到 MyZCode。",
+    "将所选数据从原版 ZCode 文件夹迁移到 MyZCode 的隔离存储。MyZCode 现有数据会保留；键冲突时以原版为准。",
   "settings.importFromOriginalZCode.run": "导入",
   "settings.importFromOriginalZCode.running": "导入中…",
   "settings.importFromOriginalZCode.done": "已导入 {count} 个文件。请重启 MyZCode 以生效。",
-  "settings.importFromOriginalZCode.failed":
-    "导入失败。请确认原版 ZCode 已安装后重试。",
-"settings.dataBaseDir": "数据存储路径",
+  "settings.importFromOriginalZCode.doneDetailed":
+    "导入完成：文件/文件夹 {files} 个，数据库行 {rows} 条。请重启 MyZCode 以生效。",
+  "settings.importFromOriginalZCode.partial":
+    "导入完成，但有 {errors} 个错误：文件/文件夹 {files} 个，数据库行 {rows} 条。",
+  "settings.importFromOriginalZCode.failed": "导入失败。请确认原版 ZCode 已安装后重试。",
+  "settings.importFromOriginalZCode.failedNotFound": "未找到原版 ZCode：~/.zcode 文件夹不存在。",
+  "settings.importFromOriginalZCode.failedSameDir":
+    "MyZCode 已经使用原版 ZCode 的数据文件夹，无需导入。",
+  "settings.importFromOriginalZCode.selectAtLeastOne": "请至少选择一个类别。",
+  "settings.importFromOriginalZCode.categoriesLabel": "导入内容",
+  "settings.importFromOriginalZCode.category.providers": "服务商与模型",
+  "settings.importFromOriginalZCode.category.plugins": "插件与市场",
+  "settings.importFromOriginalZCode.category.settings": "设置",
+  "settings.importFromOriginalZCode.category.skills": "技能、钩子、子代理",
+  "settings.importFromOriginalZCode.category.projects": "项目与会话",
+  "settings.importFromOriginalZCode.category.remoteDevices": "远程设备",
+  "settings.importFromOriginalZCode.category.mcp": "MCP 服务器",
+  "settings.importFromOriginalZCode.category.memory": "记忆",
+  "settings.importFromOriginalZCode.missingTitle": "未找到项目文件夹",
+  "settings.importFromOriginalZCode.missingHint":
+    "导入的会话指向已不存在的文件夹。为项目选择新文件夹即可继续查看历史。",
+  "settings.importFromOriginalZCode.chooseFolder": "选择文件夹",
+  "settings.importFromOriginalZCode.remapping": "更新中…",
+  "settings.importFromOriginalZCode.remapDone": "项目路径已更新。",
+  "settings.importFromOriginalZCode.remapFailed": "无法更新项目路径。",
+  "settings.dataBaseDir": "数据存储路径",
   "settings.dataBaseDirDescription":
     "应用数据的根目录（默认为用户主目录），修改后会将现有数据复制到新位置。路径后缀 .zcode/v2 不可更改。",
   "settings.dataBaseDirPlaceholder": "默认：用户主目录",

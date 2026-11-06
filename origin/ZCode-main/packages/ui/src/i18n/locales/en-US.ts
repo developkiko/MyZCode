@@ -3544,15 +3544,40 @@ const enUS: Record<string, string> = {
   "settings.taskAutoArchiveDays.option.7": "Archive after 7 days",
   "settings.taskAutoArchiveDays.option.14": "Archive after 14 days",
   "settings.taskAutoArchiveDays.option.30": "Archive after 30 days",
-    "settings.importFromOriginalZCode": "Import from original ZCode",
+  "settings.importFromOriginalZCode": "Import from original ZCode",
   "settings.importFromOriginalZCodeDescription":
-    "Copy configs (settings, accounts, bot, providers) from the original ZCode data folder into MyZCode.",
+    "Move selected data from the original ZCode folder into the isolated MyZCode storage. Existing MyZCode data is kept; on key conflicts the original wins.",
   "settings.importFromOriginalZCode.run": "Import",
   "settings.importFromOriginalZCode.running": "Importing…",
   "settings.importFromOriginalZCode.done": "Imported {count} file(s). Restart MyZCode to apply.",
+  "settings.importFromOriginalZCode.doneDetailed":
+    "Import complete: {files} file(s)/folder(s), {rows} database row(s). Restart MyZCode to apply.",
+  "settings.importFromOriginalZCode.partial":
+    "Import finished with {errors} error(s): {files} file(s)/folder(s), {rows} database row(s).",
   "settings.importFromOriginalZCode.failed":
     "Import failed. Make sure the original ZCode is installed and try again.",
-"settings.dataBaseDir": "Data storage path",
+  "settings.importFromOriginalZCode.failedNotFound":
+    "Original ZCode was not found: the ~/.zcode folder is missing.",
+  "settings.importFromOriginalZCode.failedSameDir":
+    "MyZCode already uses the original ZCode data folder — nothing to import.",
+  "settings.importFromOriginalZCode.selectAtLeastOne": "Select at least one category.",
+  "settings.importFromOriginalZCode.categoriesLabel": "What to import",
+  "settings.importFromOriginalZCode.category.providers": "Providers and models",
+  "settings.importFromOriginalZCode.category.plugins": "Plugins and marketplaces",
+  "settings.importFromOriginalZCode.category.settings": "Settings",
+  "settings.importFromOriginalZCode.category.skills": "Skills, hooks, subagents",
+  "settings.importFromOriginalZCode.category.projects": "Projects and chats",
+  "settings.importFromOriginalZCode.category.remoteDevices": "Remote devices",
+  "settings.importFromOriginalZCode.category.mcp": "MCP servers",
+  "settings.importFromOriginalZCode.category.memory": "Memory",
+  "settings.importFromOriginalZCode.missingTitle": "Project folders not found",
+  "settings.importFromOriginalZCode.missingHint":
+    "Imported chats point to folders that no longer exist. Choose a new folder for the project to keep its history available.",
+  "settings.importFromOriginalZCode.chooseFolder": "Choose folder",
+  "settings.importFromOriginalZCode.remapping": "Updating…",
+  "settings.importFromOriginalZCode.remapDone": "Project path updated.",
+  "settings.importFromOriginalZCode.remapFailed": "Could not update the project path.",
+  "settings.dataBaseDir": "Data storage path",
   "settings.dataBaseDirDescription":
     "Root directory for app data (defaults to user home directory). Existing data will be copied to the new location. The .zcode/v2 suffix cannot be changed.",
   "settings.dataBaseDirPlaceholder": "Default: user home directory",

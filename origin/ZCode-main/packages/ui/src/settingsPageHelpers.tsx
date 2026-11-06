@@ -31,6 +31,7 @@ import {
 import { Switch } from "@/components/ui/switch.js";
 import { Input } from "@/components/ui/input.js";
 import { Button } from "@/components/ui/button.js";
+import { Checkbox } from "@/components/ui/checkbox.js";
 import { SettingsBadge, SettingsGroupCard, SettingsRow } from "@/settings/SettingsPageParts.js";
 import { DataBaseDirControl } from "@/settings/DataBaseDirControl.js";
 import { useZCodeIntl } from "@/i18n/IntlProvider.js";
@@ -990,41 +991,141 @@ export function GeneralSectionHeader({ localePreference }: { localePreference: L
   );
 }
 
-/** MyZCode: разовый перенос конфигов из оригинального ZCode в изолированные данные MyZCode. */
+type ImportCategoryId =
+  | "providers"
+  | "plugins"
+  | "settings"
+  | "skills"
+  | "projects"
+  | "remoteDevices"
+  | "mcp"
+  | "memory";
+
+const IMPORT_CATEGORIES: readonly ImportCategoryId[] = [
+  "providers",
+  "plugins",
+  "settings",
+  "skills",
+  "projects",
+  "remoteDevices",
+  "mcp",
+  "memory",
+];
+
+/** По умолчанию переносим конфигурацию; историю, устройства и память — только по явному выбору. */
+const DEFAULT_IMPORT_SELECTION: Record<ImportCategoryId, boolean> = {
+  providers: true,
+  plugins: true,
+  settings: true,
+  skills: true,
+  projects: false,
+  remoteDevices: false,
+  mcp: true,
+  memory: false,
+};
+
+interface ImportFromOriginalZCodeResponse {
+  sourceDir: string | null;
+  copiedFiles: string[];
+  mergedFiles: string[];
+  errors: string[];
+  missingPaths?: string[];
+  importedRows?: number;
+}
+
+/** MyZCode: перенос конфигов/данных из оригинального ZCode в изолированный корень MyZCode. */
 function ImportFromOriginalZCodeSetting({ isDesktop }: { isDesktop?: boolean }) {
   const { intl } = useZCodeIntl();
   const platform = usePlatform();
+  const [selection, setSelection] =
+    useState<Record<ImportCategoryId, boolean>>(DEFAULT_IMPORT_SELECTION);
   const [running, setRunning] = useState(false);
+  const [remappingPath, setRemappingPath] = useState<string | null>(null);
   const [summary, setSummary] = useState<string | null>(null);
+  const [missingPaths, setMissingPaths] = useState<string[]>([]);
+
+  const selectedCount = IMPORT_CATEGORIES.filter((id) => selection[id]).length;
 
   const handleImport = useCallback(async () => {
     if (running) {
       return;
     }
+    const categories = IMPORT_CATEGORIES.filter((id) => selection[id]);
+    if (categories.length === 0) {
+      setSummary(intl.formatMessage({ id: "settings.importFromOriginalZCode.selectAtLeastOne" }));
+      return;
+    }
     setRunning(true);
     setSummary(null);
+    setMissingPaths([]);
     try {
       const result = (await platform.executeDesktopCommand(
         DesktopCommandIds.ImportFromOriginalZCode,
-      )) as
-        | { sourceDir: string | null; copiedFiles: string[]; mergedFiles: string[]; errors: string[] }
-        | undefined;
-      if (result && result.errors.length === 0) {
-        const count = result.copiedFiles.length + result.mergedFiles.length;
-        setSummary(
-          intl.formatMessage({ id: "settings.importFromOriginalZCode.done" }, { count }),
-        );
+        { categories },
+      )) as ImportFromOriginalZCodeResponse | undefined;
+      if (!result) {
+        setSummary(intl.formatMessage({ id: "settings.importFromOriginalZCode.failed" }));
         return;
       }
+      setMissingPaths(result.missingPaths ?? []);
+      if (result.errors.includes("original-not-found")) {
+        setSummary(intl.formatMessage({ id: "settings.importFromOriginalZCode.failedNotFound" }));
+        return;
+      }
+      if (result.errors.includes("same-dir")) {
+        setSummary(intl.formatMessage({ id: "settings.importFromOriginalZCode.failedSameDir" }));
+        return;
+      }
+      const files = result.copiedFiles.length + result.mergedFiles.length;
+      const rows = result.importedRows ?? 0;
       setSummary(
-        intl.formatMessage({ id: "settings.importFromOriginalZCode.failed" }),
+        result.errors.length === 0
+          ? intl.formatMessage(
+              { id: "settings.importFromOriginalZCode.doneDetailed" },
+              { files, rows },
+            )
+          : intl.formatMessage(
+              { id: "settings.importFromOriginalZCode.partial" },
+              { files, rows, errors: result.errors.length },
+            ),
       );
     } catch {
       setSummary(intl.formatMessage({ id: "settings.importFromOriginalZCode.failed" }));
     } finally {
       setRunning(false);
     }
-  }, [intl, platform, running]);
+  }, [intl, platform, running, selection]);
+
+  const handleRemap = useCallback(
+    async (from: string) => {
+      if (remappingPath) {
+        return;
+      }
+      const to = await platform.selectDirectory();
+      if (!to) {
+        return;
+      }
+      setRemappingPath(from);
+      setSummary(null);
+      try {
+        const result = (await platform.executeDesktopCommand(
+          DesktopCommandIds.ImportFromOriginalZCode,
+          { remapProjectPaths: [{ from, to }] },
+        )) as ImportFromOriginalZCodeResponse | undefined;
+        if (!result || result.errors.length > 0) {
+          setSummary(intl.formatMessage({ id: "settings.importFromOriginalZCode.remapFailed" }));
+          return;
+        }
+        setMissingPaths(result.missingPaths ?? []);
+        setSummary(intl.formatMessage({ id: "settings.importFromOriginalZCode.remapDone" }));
+      } catch {
+        setSummary(intl.formatMessage({ id: "settings.importFromOriginalZCode.remapFailed" }));
+      } finally {
+        setRemappingPath(null);
+      }
+    },
+    [intl, platform, remappingPath],
+  );
 
   if (!isDesktop) {
     return null;
@@ -1032,15 +1133,47 @@ function ImportFromOriginalZCodeSetting({ isDesktop }: { isDesktop?: boolean }) 
 
   return (
     <SettingsGroupCard>
-      <SettingsRow
-        label={intl.formatMessage({ id: "settings.importFromOriginalZCode" })}
-        description={intl.formatMessage({ id: "settings.importFromOriginalZCodeDescription" })}
-        control={
+      <div className="flex flex-col gap-3 px-4 py-4">
+        <div>
+          <div className="font-medium text-foreground">
+            {intl.formatMessage({ id: "settings.importFromOriginalZCode" })}
+          </div>
+          <p className="mt-1 text-ui-sm text-foreground-subtle">
+            {intl.formatMessage({ id: "settings.importFromOriginalZCodeDescription" })}
+          </p>
+        </div>
+
+        <div>
+          <div className="mb-2 text-ui-sm font-medium text-foreground-subtle">
+            {intl.formatMessage({ id: "settings.importFromOriginalZCode.categoriesLabel" })}
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {IMPORT_CATEGORIES.map((id) => (
+              <label
+                key={id}
+                className="flex cursor-pointer items-center gap-2 text-ui-base text-foreground"
+              >
+                <Checkbox
+                  checked={selection[id]}
+                  disabled={running}
+                  onCheckedChange={(checked) =>
+                    setSelection((current) => ({ ...current, [id]: checked === true }))
+                  }
+                />
+                <span>
+                  {intl.formatMessage({ id: `settings.importFromOriginalZCode.category.${id}` })}
+                </span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex justify-end">
           <Button
             type="button"
             size="lg"
             variant="outline"
-            disabled={running}
+            disabled={running || selectedCount === 0}
             onClick={() => void handleImport()}
           >
             {intl.formatMessage({
@@ -1049,11 +1182,44 @@ function ImportFromOriginalZCodeSetting({ isDesktop }: { isDesktop?: boolean }) 
                 : "settings.importFromOriginalZCode.run",
             })}
           </Button>
-        }
-      />
-      {summary ? (
-        <div className="px-4 pb-4 text-ui-sm text-foreground-subtle">{summary}</div>
-      ) : null}
+        </div>
+
+        {summary ? <div className="text-ui-sm text-foreground-subtle">{summary}</div> : null}
+
+        {missingPaths.length > 0 ? (
+          <div className="rounded-md border border-amber-500/40 bg-amber-500/5 px-3 py-3">
+            <div className="text-ui-base font-medium text-amber-700 dark:text-amber-300">
+              {intl.formatMessage({ id: "settings.importFromOriginalZCode.missingTitle" })}
+            </div>
+            <p className="mt-1 text-ui-sm text-foreground-subtle">
+              {intl.formatMessage({ id: "settings.importFromOriginalZCode.missingHint" })}
+            </p>
+            <ul className="mt-2 flex flex-col gap-2">
+              {missingPaths.map((path) => (
+                <li key={path} className="flex flex-wrap items-center gap-2">
+                  <code className="min-w-0 flex-1 break-all rounded bg-muted px-2 py-1 font-mono text-ui-sm">
+                    {path}
+                  </code>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    disabled={remappingPath !== null}
+                    onClick={() => void handleRemap(path)}
+                  >
+                    {intl.formatMessage({
+                      id:
+                        remappingPath === path
+                          ? "settings.importFromOriginalZCode.remapping"
+                          : "settings.importFromOriginalZCode.chooseFolder",
+                    })}
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+      </div>
     </SettingsGroupCard>
   );
 }
