@@ -221,27 +221,27 @@ function parseBotModelOptionValue(value: string): ModelSelection | undefined {
 const BOT_REPLY_GRANULARITY_OPTIONS = [
   {
     id: "assistant_changes",
-    label: { "zh-CN": "标准回复", "en-US": "Standard reply", "ru-RU": "Обычные ответы" },
+    label: { "zh-CN": "标准回复", "en-US": "Standard reply" },
     aliases: ["assistant", "assistant_changes", "normal", "default", "standard", "标准回复"],
   },
   {
     id: "assistant_toolcalls_changes",
-    label: { "zh-CN": "完整回复", "en-US": "Full reply", "ru-RU": "Полные ответы" },
+    label: { "zh-CN": "完整回复", "en-US": "Full reply" },
     aliases: ["full", "tool", "toolcalls", "assistant_toolcalls_changes", "完整回复"],
   },
   {
     id: "summary_changes",
-    label: { "zh-CN": "摘要回复", "en-US": "Summary reply", "ru-RU": "Краткие ответы" },
+    label: { "zh-CN": "摘要回复", "en-US": "Summary reply" },
     aliases: ["summary", "summary_changes", "latest", "摘要回复"],
   },
   {
     id: "streaming_card",
-    label: { "zh-CN": "流式卡片", "en-US": "Streaming card", "ru-RU": "Живая карточка" },
+    label: { "zh-CN": "流式卡片", "en-US": "Streaming card" },
     aliases: ["stream", "streaming", "streaming_card", "流式", "流式卡片"],
   },
 ] as const satisfies ReadonlyArray<{
   id: BotReplyGranularity;
-  label: Record<"zh-CN" | "en-US" | "ru-RU", string>;
+  label: Record<"zh-CN" | "en-US", string>;
   aliases: readonly string[];
 }>;
 
@@ -441,7 +441,7 @@ function normalizeText(value: string): string {
 }
 
 function getReplyGranularityOptions(locale: Locale | undefined, provider?: BotProvider) {
-  const messageLocale = locale === "zh-CN" ? "zh-CN" : locale === "ru-RU" ? "ru-RU" : "en-US";
+  const messageLocale = locale === "en-US" ? "en-US" : "zh-CN";
   const supportedIds = provider ? new Set(getSupportedBotReplyGranularities(provider)) : null;
   return BOT_REPLY_GRANULARITY_OPTIONS.filter(
     (option) => !supportedIds || supportedIds.has(option.id),
@@ -467,8 +467,7 @@ function resolveReplyGranularityByValue(
     (item) =>
       (item.aliases as readonly string[]).includes(normalized) ||
       normalizeText(item.label["zh-CN"]) === normalized ||
-      normalizeText(item.label["en-US"]) === normalized ||
-      normalizeText(item.label["ru-RU"]) === normalized,
+      normalizeText(item.label["en-US"]) === normalized,
   );
   return option ? (options.find((item) => item.id === option.id) ?? null) : null;
 }
@@ -616,20 +615,6 @@ function sortBotPermissionOptions(
 
 function formatBotPermissionOptionLabel(option: ZCodePermissionOption, locale?: Locale): string {
   const displayKind = getBotPermissionOptionDisplayKind(option);
-  if (locale === "ru-RU") {
-    switch (displayKind) {
-      case "allowOnce":
-        return "Разрешить";
-      case "allowAlways":
-        return "Разрешать всегда";
-      case "rejectOnce":
-        return "Отклонить";
-      case "rejectAlways":
-        return "Отклонять всегда";
-      case "custom":
-        return option.name;
-    }
-  }
   if (locale === "en-US") {
     switch (displayKind) {
       case "allowOnce":
@@ -668,26 +653,6 @@ function formatBotPermissionOptionDescription(
     return option.kind;
   }
   const scope = getPermissionRequestPreview(request).scope;
-  if (locale === "ru-RU") {
-    if (displayKind === "allowOnce") {
-      return "Разрешить только в этот раз";
-    }
-    if (displayKind === "rejectOnce") {
-      return "Отклонить в этот раз";
-    }
-    if (displayKind === "allowAlways") {
-      return scope === "command"
-        ? "Больше не спрашивать для этой команды"
-        : scope === "file"
-          ? "Больше не спрашивать для этой файловой операции"
-          : "Больше не спрашивать для этого запроса разрешения";
-    }
-    return scope === "command"
-      ? "Всегда отклонять эту команду"
-      : scope === "file"
-        ? "Всегда отклонять эту файловую операцию"
-        : "Всегда отклонять этот запрос разрешения";
-  }
   if (locale === "en-US") {
     if (displayKind === "allowOnce") {
       return "Allow this time only";
@@ -752,8 +717,7 @@ function formatWorkspaceOptionLabel(workspace: BotWorkspaceRef, locale?: Locale)
   if (!workspace.workspaceIdentity) {
     return workspace.label;
   }
-  const remoteLabel =
-    locale === "en-US" ? "[Remote]" : locale === "ru-RU" ? "[Удалённая]" : "[远端]";
+  const remoteLabel = locale === "en-US" ? "[Remote]" : "[远端]";
   return `${workspace.label} ${remoteLabel}`;
 }
 
@@ -1718,9 +1682,7 @@ export function createBotsService(
           message.actor,
           auth.locale === "en-US"
             ? "Topic history is configured in a group."
-            : auth.locale === "ru-RU"
-              ? "История темы настраивается в группе."
-              : "请在群里配置话题历史读取。",
+            : "请在群里配置话题历史读取。",
         ),
       ];
     const key = getBotConversationKey({
@@ -1752,13 +1714,9 @@ export function createBotsService(
           ? active
             ? "Topic history enabled. The next topic input reconciles discussion history."
             : "Topic history is off. Topic input is paused."
-          : auth.locale === "ru-RU"
-            ? active
-              ? "История темы включена. Следующий ввод в теме дополнит историю обсуждения."
-              : "История темы выключена. Ввод в теме приостановлен."
-            : active
-              ? "已开启话题历史读取。下次话题输入会补齐讨论历史。"
-              : "话题历史读取已关闭，话题输入已暂停。",
+          : active
+            ? "已开启话题历史读取。下次话题输入会补齐讨论历史。"
+            : "话题历史读取已关闭，话题输入已暂停。",
       ),
     ];
   }
@@ -2038,9 +1996,7 @@ export function createBotsService(
       throw new Error(
         locale === "en-US"
           ? "Attach at most 4 files per message."
-          : locale === "ru-RU"
-            ? "К сообщению можно приложить не более 4 файлов, отправьте их частями."
-            : "每条消息最多提交 4 个附件，请拆分后发送。",
+          : "每条消息最多提交 4 个附件，请拆分后发送。",
       );
     }
     const rawAttachments = (message.attachments ?? []).slice(0, BOT_MAX_ATTACHMENTS_PER_MESSAGE);
@@ -2229,7 +2185,7 @@ export function createBotsService(
   }
 
   function currentOptionSuffix(locale: Locale | undefined): string {
-    return locale === "en-US" ? "current" : locale === "ru-RU" ? "текущий" : "当前";
+    return locale === "en-US" ? "current" : "当前";
   }
 
   function formatReplyGranularityLabel(
@@ -2340,12 +2296,11 @@ export function createBotsService(
       return option.label;
     }
     const isEnglish = locale === "en-US";
-    const isRussian = locale === "ru-RU";
     const labels: Partial<Record<ZCodeProvider, Record<string, string>>> = {
       glm: {
-        default: isEnglish ? "Default" : isRussian ? "Обычный" : "默认",
+        default: isEnglish ? "Default" : "默认",
         yolo: "Yolo",
-        plan: isEnglish ? "Plan" : isRussian ? "План" : "计划",
+        plan: isEnglish ? "Plan" : "计划",
       },
     };
     return labels[provider]?.[option.id] ?? option.label;
@@ -3101,9 +3056,7 @@ export function createBotsService(
         bot.provider === "weixin"
           ? locale === "en-US"
             ? `${detail}. Send a message to the bot in Weixin, then retry.`
-            : locale === "ru-RU"
-              ? `${detail}. Отправьте боту сообщение в Weixin и повторите.`
-              : `${detail}。请在微信给机器人发一条消息后重试。`
+            : `${detail}。请在微信给机器人发一条消息后重试。`
           : detail,
       );
       throw error;
@@ -5098,9 +5051,7 @@ export function createBotsService(
           bot,
           locale === "en-US"
             ? "Send a message to the bot in Weixin, then retry."
-            : locale === "ru-RU"
-              ? "Отправьте боту сообщение в Weixin и повторите."
-              : "请在微信给机器人发一条消息后重试。",
+            : "请在微信给机器人发一条消息后重试。",
         );
         return;
       }
@@ -5539,14 +5490,10 @@ export function createBotsService(
               event.reason === "session_resumed"
                 ? locale === "en-US"
                   ? "Queued input was discarded after runtime restart; it was not executed."
-                  : locale === "ru-RU"
-                    ? "Ожидающий ввод отменён после перезапуска среды; он не был выполнен."
-                    : "排队输入已在运行时重启后丢弃，未执行。"
+                  : "排队输入已在运行时重启后丢弃，未执行。"
                 : locale === "en-US"
                   ? "Queued input was removed or rejected; it will not execute."
-                  : locale === "ru-RU"
-                    ? "Ожидающий ввод удалён или отклонён; он не будет выполнен."
-                    : "排队输入已删除或被拒绝，不会执行。";
+                  : "排队输入已删除或被拒绝，不会执行。";
             const inputActor: BotActor = {
               ...actor,
               providerUserId: input.source.senderId,
@@ -5948,14 +5895,7 @@ export function createBotsService(
             return;
           await sendTaskOutbound(
             bot,
-            createOutbound(
-              actor,
-              locale === "en-US"
-                ? "Task completed."
-                : locale === "ru-RU"
-                  ? "Задача завершена."
-                  : "任务已完成。",
-            ),
+            createOutbound(actor, locale === "en-US" ? "Task completed." : "任务已完成。"),
           );
           return;
         }
@@ -6748,9 +6688,7 @@ export function createBotsService(
       lines.push(
         locale === "en-US"
           ? "Mention this bot to submit a request. /answer answers your active question."
-          : locale === "ru-RU"
-            ? "Упомяните этого бота, чтобы отправить запрос. /answer отвечает на ваш активный вопрос."
-            : "@当前机器人提交需求；/answer 回答自己发起请求中的问题。",
+          : "@当前机器人提交需求；/answer 回答自己发起请求中的问题。",
       );
       if (groupRole === "owner") {
         lines.push("/enable · /disable · /task · /stop · /approve · /deny · /reconnect");
@@ -7048,16 +6986,16 @@ export function createBotsService(
         ? [
             createOutbound(
               message.actor,
-              locale === "en-US" ? "Waiting to run" : locale === "ru-RU" ? "Ожидает запуска" : "等待执行",
+              locale === "en-US" ? "Waiting to run" : "等待执行",
               {
                 id: `queue-${commandId}`,
-                title: locale === "en-US" ? "Queued" : locale === "ru-RU" ? "В очереди" : "已排队",
+                title: locale === "en-US" ? "Queued" : "已排队",
                 action: "queue.cancel",
                 showCancel: false,
                 options: [
                   {
                     id: `/queue-cancel ${commandId}`,
-                    label: locale === "en-US" ? "Cancel" : locale === "ru-RU" ? "Отменить" : "取消",
+                    label: locale === "en-US" ? "Cancel" : "取消",
                   },
                 ],
               },
@@ -7143,9 +7081,7 @@ export function createBotsService(
             message.actor,
             auth.locale === "en-US"
               ? "This topic queue card has expired. Use /stop to stop the topic."
-              : auth.locale === "ru-RU"
-                ? "Срок действия этой карточки очереди истёк. Используйте /stop, чтобы остановить тему."
-                : "该话题排队卡已失效，请使用 /stop 停止话题。",
+              : "该话题排队卡已失效，请使用 /stop 停止话题。",
           ),
           callbackToastOnly: true,
         },
@@ -7192,14 +7128,10 @@ export function createBotsService(
         accepted
           ? auth.locale === "en-US"
             ? "Queued input cancelled."
-            : auth.locale === "ru-RU"
-              ? "Ожидающий ввод отменён."
-              : "已取消该排队输入。"
+            : "已取消该排队输入。"
           : auth.locale === "en-US"
             ? "Input changed or started; cancellation was not applied."
-            : auth.locale === "ru-RU"
-              ? "Ввод изменился или уже начал выполняться; отмена не применена."
-              : "输入已变化或开始执行，未取消。",
+            : "输入已变化或开始执行，未取消。",
       ),
     ];
   }
@@ -7620,9 +7552,7 @@ export function createBotsService(
           message.actor,
           auth.locale === "en-US"
             ? "This message belongs to an earlier task and will not be executed again."
-            : auth.locale === "ru-RU"
-              ? "Это сообщение относится к более ранней задаче и повторно выполняться не будет."
-              : "这条消息已关联到此前任务，不会在新任务中重复执行。",
+            : "这条消息已关联到此前任务，不会在新任务中重复执行。",
         ),
       ];
     }
@@ -7634,9 +7564,7 @@ export function createBotsService(
           message.actor,
           auth.locale === "en-US"
             ? "This message already has an admission record. Check the task before submitting another request."
-            : auth.locale === "ru-RU"
-              ? "Это сообщение уже принято в обработку. Проверьте состояние задачи, прежде чем отправлять новый запрос."
-              : "这条消息已有接收记录，请先在任务中核对执行状态，不会自动重复提交。",
+            : "这条消息已有接收记录，请先在任务中核对执行状态，不会自动重复提交。",
         ),
       ];
     }
@@ -7651,7 +7579,6 @@ export function createBotsService(
     }
     if (history.historyDisabled || history.historyError) {
       const en = auth.locale === "en-US";
-      const ru = auth.locale === "ru-RU";
       const permissionDenied = history.historyError instanceof TopicHistoryPermissionError;
       const platformUrl =
         auth.bot.provider === "lark"
@@ -7660,20 +7587,14 @@ export function createBotsService(
       const text = history.historyDisabled
         ? en
           ? "Topic history is disabled. Ask the bound user to enable /history on before using topics."
-          : ru
-            ? "История темы отключена, обработка сообщений темы временно недоступна. Попросите привязанного пользователя отправить /history on, затем упомяните бота снова."
-            : "话题历史已关闭，暂时无法处理话题消息。请绑定用户发送 /history on 后重新 @。"
+          : "话题历史已关闭，暂时无法处理话题消息。请绑定用户发送 /history on 后重新 @。"
         : permissionDenied
           ? en
             ? `Topic history permission is missing. No task was submitted. Ask the app administrator to open ${platformUrl}, select this bot app, enable the required application-identity message permissions (including im:message.group_msg), and publish the change. Then mention the bot again.`
-            : ru
-              ? `У бота нет разрешения на чтение истории темы, задача не отправлена. Попросите администратора приложения открыть ${platformUrl}, выбрать это приложение бота, включить права на чтение сообщений от имени приложения (включая im:message.group_msg — чтение всех сообщений группы) и опубликовать изменения. После этого упомяните бота снова. Устанавливать или авторизовывать lark-cli не нужно.`
-              : `机器人缺少话题历史读取权限，未提交任务。请应用管理员打开 ${platformUrl}，选择当前机器人应用，在权限管理中开通应用身份的消息读取权限（包括 im:message.group_msg，获取群组中所有消息），并发布生效后重新 @。无需安装或授权 lark-cli。`
+            : `机器人缺少话题历史读取权限，未提交任务。请应用管理员打开 ${platformUrl}，选择当前机器人应用，在权限管理中开通应用身份的消息读取权限（包括 im:message.group_msg，获取群组中所有消息），并发布生效后重新 @。无需安装或授权 lark-cli。`
           : en
             ? "Topic history could not be read. No task was submitted. Please retry by mentioning the bot again later."
-            : ru
-              ? "Не удалось прочитать историю темы, задача не отправлена. Повторите позже, упомянув бота снова."
-              : "暂时无法读取话题历史，未提交任务。请稍后重新 @ 重试。";
+            : "暂时无法读取话题历史，未提交任务。请稍后重新 @ 重试。";
       return [
         history.historyDisabled
           ? administratorReply(
@@ -7702,9 +7623,7 @@ export function createBotsService(
             message.actor,
             auth.locale === "en-US"
               ? "Please add a request, or reply to the message you want me to handle and mention me."
-              : auth.locale === "ru-RU"
-                ? "Добавьте запрос или ответьте на сообщение, которое нужно обработать, и упомяните меня."
-                : "请补充需求，或回复要处理的消息并 @我。",
+              : "请补充需求，或回复要处理的消息并 @我。",
           ),
         ];
       }
@@ -7720,9 +7639,7 @@ export function createBotsService(
             message.actor,
             auth.locale === "en-US"
               ? "The quoted text is too long. Please quote a shorter passage or attach it as a file."
-              : auth.locale === "ru-RU"
-                ? "Цитируемый текст слишком длинный. Процитируйте фрагмент короче или приложите его файлом."
-                : "引用文字过长，请缩小引用范围或作为文件提交。",
+              : "引用文字过长，请缩小引用范围或作为文件提交。",
           ),
         ];
       }
@@ -8908,9 +8825,7 @@ export function createBotsService(
                   message.actor,
                   auth.locale === "en-US"
                     ? "Open another topic to start a new task."
-                    : auth.locale === "ru-RU"
-                      ? "Откройте другую тему, чтобы начать новую задачу."
-                      : "请另开一个话题开始新任务。",
+                    : "请另开一个话题开始新任务。",
                 ),
               ];
             const blockReason = await getContextTaskBlockReason(auth.context);
@@ -9603,9 +9518,7 @@ export function createBotsService(
                   message.actor,
                   auth.locale === "en-US"
                     ? "Use /leave inside a topic."
-                    : auth.locale === "ru-RU"
-                      ? "Команда /leave работает внутри темы."
-                      : "请在话题中使用 /leave。",
+                    : "请在话题中使用 /leave。",
                 ),
               ];
             await cancelTopicInputs(message.actor);
@@ -9632,9 +9545,7 @@ export function createBotsService(
                 message.actor,
                 auth.locale === "en-US"
                   ? "Left this topic. Mention me to resume the same task."
-                  : auth.locale === "ru-RU"
-                    ? "Вы вышли из темы. Упомяните меня, чтобы продолжить ту же задачу."
-                    : "已退出话题。再次 @我可继续原任务。",
+                  : "已退出话题。再次 @我可继续原任务。",
               ),
             ];
           }

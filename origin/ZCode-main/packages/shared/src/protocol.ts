@@ -74,7 +74,7 @@ export interface SystemInfo {
 }
 
 /** 支持的语言 */
-export type Locale = "zh-CN" | "en-US" | "ru-RU";
+export type Locale = "zh-CN" | "en-US";
 
 /** 界面语言偏好；system 表示跟随当前运行端系统语言。 */
 export type LocalePreference = "system" | Locale;
@@ -194,6 +194,8 @@ export interface RemoteWorkspaceSessionSnapshot {
   lastConnectionStatus: "connected" | "failed";
   /** 最近一次失败原因；成功后清空 */
   lastConnectionError?: string;
+  /** 最近一次失败的错误码，与 lastConnectionError 同写同清；等待点也写成失败，只看文案分不清两类 */
+  lastConnectionErrorCode?: string;
 }
 
 export interface LocalWorkspaceSessionEntry {

@@ -246,8 +246,6 @@ function previewPreflightKey(
 const IMPORTED_SHARE_TITLE_PREFIX: Readonly<Record<Locale, string>> = {
   "zh-CN": "来自分享：",
   "en-US": "From Share: ",
-  // Сайта обмена на русском нет — заголовок импорта даём на английском.
-  "ru-RU": "From Share: ",
 };
 
 function formatImportedShareSessionTitle(shareTitle: string, locale: Locale | undefined): string {
@@ -308,15 +306,6 @@ function turnOrdinalByProductTurn(rows: readonly ConversationRow[]): Map<string,
 
 function rowTurnOrdinal(row: ConversationRow, ordinals: Map<string, number>): number | undefined {
   return row.productTurnId ? ordinals.get(row.productTurnId) : undefined;
-}
-
-function hasUnsafeShareString(value: unknown): boolean {
-  if (typeof value === "string") return /^(?:data|file):/iu.test(value);
-  if (Array.isArray(value)) return value.some(hasUnsafeShareString);
-  if (!value || typeof value !== "object") return false;
-  return Object.entries(value as Record<string, unknown>).some(([key, entry]) =>
-    key === "ref" ? false : hasUnsafeShareString(entry),
-  );
 }
 
 function hasUnsupportedArtifactReference(value: unknown): boolean {
@@ -457,7 +446,6 @@ function collectShareStructureIssues(
         add(row, "unsupported_timeline");
       }
     }
-    if (hasUnsafeShareString(row)) add(row, "unsafe_url");
     if (hasUnsupportedArtifactReference(row)) add(row, "artifact_protocol_not_ready");
   }
   return issues;
@@ -2092,9 +2080,7 @@ export class ConversationShareService implements IConversationShareService {
         (issue) => issue.code === "artifact_protocol_not_ready",
       )
         ? "artifact_protocol_not_ready"
-        : structureIssues.some((issue) => issue.code === "unsafe_url")
-          ? "unsafe_structure"
-          : "invalid_conversation";
+        : "invalid_conversation";
       throw new ConversationShareServiceError(
         structureKind,
         "Selected conversation contains unsupported structure",

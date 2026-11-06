@@ -44,7 +44,5 @@ export async function resolveWebCommunityUrl(
   locale: Locale,
   options: ResolveWebCommunityUrlOptions = {},
 ): Promise<string | undefined> {
-  // Конфиг сообщества публикует только zh/en пути; ru-RU смотрим английский.
-  const lookupLocale = locale === "zh-CN" ? ("zh-CN" as const) : ("en-US" as const);
-  return (await resolveWebHelpConfig(options)).community_urls?.[lookupLocale];
+  return (await resolveWebHelpConfig(options)).community_urls?.[locale];
 }

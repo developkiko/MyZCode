@@ -27,7 +27,6 @@ import { showAboutDialog } from "./about.js";
 import { checkForUpdateMenuClick } from "./autoUpdater.js";
 import { resolveCuaOsSupport } from "./cuaOsSupport.js";
 import { syncWindowControlsOverlayForZoomLevel } from "./desktopWindowButtonPosition.js";
-import { importFromOriginalZCode } from "./desktopImportFromOriginalZCode.js";
 import {
   DEFAULT_DESKTOP_WINDOW_HEIGHT,
   DEFAULT_DESKTOP_WINDOW_WIDTH,
@@ -501,6 +500,8 @@ export async function executeDesktopCommand(options: {
   zcodeEndpointEnvBaseOrigin?: string | null;
   credentialsDir: string;
   currentApplicationLocale: Locale;
+  /** 远控诊断：向已配对手机拉取日志并导出（窗口 id 为命令来源窗口）。 */
+  pullMobileLogs?: (windowId: number | undefined) => Promise<unknown>;
 }) {
   const targetWindow = resolveTargetWindow(options.senderWindow);
   options.logger.info(
@@ -617,6 +618,9 @@ export async function executeDesktopCommand(options: {
     case DesktopCommandIds.ExportLogs:
       await exportLogs();
       return;
+    case DesktopCommandIds.PullMobileLogs:
+      await options.pullMobileLogs?.(targetWindow?.id);
+      return;
     case DesktopCommandIds.ToggleDevTools:
       targetWindow?.webContents.toggleDevTools();
       return;
@@ -689,7 +693,5 @@ export async function executeDesktopCommand(options: {
       return;
     case DesktopCommandIds.GetCuaOsSupport:
       return resolveCuaOsSupport();
-    case DesktopCommandIds.ImportFromOriginalZCode:
-      return importFromOriginalZCode();
   }
 }

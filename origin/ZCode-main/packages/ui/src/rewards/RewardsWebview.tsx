@@ -37,9 +37,6 @@ export function RewardsWebview({ onClose }: { onClose: () => void }) {
   )
     ? "zai-dark"
     : "zai-light";
-  // Страница rewards и её мост понимают только zh/en; для ru-RU отдаём en-US,
-  // иначе мост отбросит весь контекст (включая auth) как невалидный.
-  const rewardsLocale: RewardsContext["locale"] = locale === "ru-RU" ? "en-US" : locale;
   const env = import.meta.env;
   const policy = { dev: env.DEV, e2e: env.VITE_ZCODE_E2E_STORE_BRIDGE === "1" };
   const [url] = useState(() =>
@@ -52,7 +49,7 @@ export function RewardsWebview({ onClose }: { onClose: () => void }) {
             ? env.VITE_REWARDS_WEBVIEW_ORIGIN
             : undefined,
       }),
-      rewardsLocale,
+      locale,
       theme,
     ),
   );
@@ -62,9 +59,9 @@ export function RewardsWebview({ onClose }: { onClose: () => void }) {
   const ready = useRef(false);
   const injectedIdentity = useRef<string | null | undefined>(undefined);
   const authSnapshot = useRef({ fingerprint: "", revision: 0 });
-  const latest = useRef({ theme, locale: rewardsLocale, userId });
+  const latest = useRef({ theme, locale, userId });
   // 读取后的身份比较覆盖 React effect 尚未执行的窗口，不能让旧账号写入新页面。
-  latest.current = { theme, locale: rewardsLocale, userId };
+  latest.current = { theme, locale, userId };
   const [error, setError] = useState(false);
   const [navigation, setNavigation] = useState({ loading: true, back: false, forward: false });
   const inject = useCallback(async () => {
@@ -221,7 +218,7 @@ export function RewardsWebview({ onClose }: { onClose: () => void }) {
           createRewardsInjectionScript(
             {
               theme,
-              locale: rewardsLocale,
+              locale,
               auth: { status: "anonymous", provider: null, revision: generation.current },
             },
             {},
