@@ -670,9 +670,7 @@ export function SettingsPage({
         : "app",
     );
   }, [selectedUsageCodingPlanSource, usageActiveTab, usageCodingPlanSources]);
-  const setNewUserOnboardingOpen = useZCodeStore((state) => state.setNewUserOnboardingOpen);
-  // 「通用」页「打开引导」打开职业引导；迁移向导只从数据同步页「迁移」进入。
-  const openOccupationOnboarding = () => setNewUserOnboardingOpen(true);
+  // 迁移向导只从数据同步页「迁移」进入。
   const requestMigrationDialog = useZCodeStore((state) => state.requestOnboardingDialog);
   const setActiveSettingsSection = useCallback(
     (section: SettingsSectionId, fallbackSection: SettingsSectionId = activeSection) => {
@@ -1896,18 +1894,6 @@ export function SettingsPage({
                               }
                               onAskUserQuestionAutoResolutionEnabledChange={
                                 handleAskUserQuestionAutoResolutionEnabledChange
-                              }
-                              onOpenOnboardingDialog={() =>
-                                runUserAction({
-                                  input: {
-                                    featureId: "settings.navigation",
-                                    action: "open_onboarding",
-                                    trigger: "button",
-                                  },
-                                  operation: openOccupationOnboarding,
-                                  completed: { resultSource: "local_commit" },
-                                  failureStage: "dialog_open",
-                                })
                               }
                             />
                           ) : activeSection === "dataSync" ? (
